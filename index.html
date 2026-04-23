@@ -175,7 +175,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
 .btn-action.gold{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 3px 12px rgba(201,168,76,0.3);}
 .btn-action.gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,0.4);}
 
-/* ── ROI CALCULATOR SECTION ─────────────────────────────── */
+/* ── ROI CALCULATOR SECTION ───���─────────────────────────── */
 .roi-section{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-top:24px;display:none;animation:fadeSlide 0.4s ease;}
 .roi-section.active{display:block;}
 .roi-header{background:linear-gradient(135deg,#1a3a5c,#2563a0);padding:28px 32px;color:white;}
@@ -850,6 +850,7 @@ async function submitAssessment() {
   });
 
   const fd={
+    type:'FIRE',
     timestamp:new Date().toISOString(),
     firstName:document.getElementById('firstName').value,
     lastName:document.getElementById('lastName').value,

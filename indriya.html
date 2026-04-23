@@ -9,6 +9,7 @@
 <link rel="icon" href="assets/unirp-logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --dg:#044a3d; --mg:#0a6852; --ag:#2d8f6f; --lg:#e8f5f0; --pg:#f2faf7;
@@ -231,6 +232,27 @@ textarea.field-input{resize:vertical;min-height:60px;}
 .gate-feat-title{font-weight:700;color:#7a5a1c;font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:7px;}
 .gate-feat-desc{font-size:12px;color:var(--tm);line-height:1.55;}
 
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:720px){.choice-grid{grid-template-columns:1fr;}}
+.choice-card{background:var(--pg);border:1.5px solid var(--bd);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:10px;position:relative;transition:all 0.22s;}
+.choice-card:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(4,74,61,0.08);}
+.choice-card.premium{background:linear-gradient(160deg,#fbf6e8 0%,#fff 55%,#fff 100%);border-color:#ecdfba;}
+.choice-tag{position:absolute;top:14px;right:14px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:12px;}
+.choice-card.free .choice-tag{background:var(--lg);color:var(--mg);}
+.choice-card.premium .choice-tag{background:var(--gold);color:white;}
+.choice-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--dg);padding-right:90px;line-height:1.2;}
+.choice-sub{font-size:13px;color:var(--tm);line-height:1.6;}
+.choice-points{list-style:none;padding:0;margin:4px 0 0;}
+.choice-points li{font-size:12.5px;color:var(--tm);line-height:1.7;padding-left:18px;position:relative;}
+.choice-points li::before{content:'✓';color:var(--mg);font-weight:700;position:absolute;left:0;}
+.choice-card.premium .choice-points li::before{color:#b8943a;}
+.btn-choice{margin-top:auto;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;letter-spacing:0.3px;transition:all 0.2s;}
+.btn-choice.outline{background:white;color:var(--dg);border:1.5px solid var(--bd);}
+.btn-choice.outline:hover{border-color:var(--mg);}
+.btn-choice.solid{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 4px 16px rgba(201,168,76,0.3);}
+.btn-choice.solid:hover{transform:translateY(-1px);box-shadow:0 7px 24px rgba(201,168,76,0.4);}
+.choice-note{font-size:12px;color:var(--tl);line-height:1.6;text-align:center;padding:0 10px;}
+
 /* ── RESULTS ────────────────────────────────────────────── */
 .results-card{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;display:none;}
 .results-card.active{display:block;animation:fade 0.35s ease;}
@@ -364,7 +386,7 @@ textarea.field-input{resize:vertical;min-height:60px;}
   </div>
 </header>
 
-<!-- ─── LANDING ───────────────────────────────────────── -->
+<!-- ─── LANDING ────────────────────────────��──────────── -->
 <div id="landing">
 
   <!-- HERO -->
@@ -629,37 +651,52 @@ textarea.field-input{resize:vertical;min-height:60px;}
   <section class="section-card" id="sec3"></section>
   <section class="section-card" id="sec4"></section>
 
-  <!-- STEP 5: GATE WALL -->
+  <!-- STEP 5: CHOICE GATE (free report vs continue to premium) -->
   <section class="gate-card" id="secGate">
     <header class="gate-head">
       <div class="gate-head-inner">
-        <div class="gate-icon" aria-hidden="true">&#128274;</div>
-        <h2 class="gate-title">Unlock the Advanced Academic Audit</h2>
-        <p class="gate-sub">You&apos;ve completed the Technical &amp; ERP audit. The final two dimensions are reviewed in consultation with our senior team &mdash; they cover NAAC/NBA accreditation readiness, innovation ecosystem, and sustainability.</p>
+        <div class="gate-icon" aria-hidden="true">&#127919;</div>
+        <h2 class="gate-title">Technical audit complete. What next?</h2>
+        <p class="gate-sub">You&apos;ve finished the four Technical &amp; ERP dimensions. You can either receive your free report now, or continue into the two NAAC/NBA-aligned dimensions and get a complete Smart Campus audit.</p>
       </div>
     </header>
     <div class="gate-body">
-      <div class="gate-features">
-        <div class="gate-feat"><div class="gate-feat-title"><span>&#127942;</span> NAAC / NBA mapping</div><div class="gate-feat-desc">Gap analysis aligned to accreditation criteria and indicators.</div></div>
-        <div class="gate-feat"><div class="gate-feat-title"><span>&#128300;</span> Peer benchmarking</div><div class="gate-feat-desc">Compare against similar institutions nationally.</div></div>
-        <div class="gate-feat"><div class="gate-feat-title"><span>&#129504;</span> AI readiness scoring</div><div class="gate-feat-desc">Predictive analytics and intelligent automation readiness.</div></div>
-        <div class="gate-feat"><div class="gate-feat-title"><span>&#127758;</span> ESG &amp; sustainability</div><div class="gate-feat-desc">Environmental and governance footprint audit.</div></div>
+      <div class="choice-grid" id="choiceGrid">
+
+        <article class="choice-card free">
+          <div class="choice-tag">Free tier</div>
+          <div class="choice-title">Generate my free report</div>
+          <div class="choice-sub">Receive a branded PDF of Dimensions 1&ndash;4 with all your observations and photo evidence embedded.</div>
+          <ul class="choice-points">
+            <li>Scorecard on 4 of 6 dimensions (/80)</li>
+            <li>Radar chart &amp; maturity indicator</li>
+            <li>Photo evidence annex</li>
+            <li>Roadmap from Bloomfield Innovations</li>
+          </ul>
+          <button class="btn-choice outline" onclick="chooseFreeReport()">Get my free report &rarr;</button>
+        </article>
+
+        <article class="choice-card premium">
+          <div class="choice-tag">Recommended</div>
+          <div class="choice-title">Continue to premium assessment</div>
+          <div class="choice-sub">Add the two accreditation-grade dimensions &mdash; Innovation &amp; Industry, Sustainability &amp; Future Readiness &mdash; and get a complete INDRIYA audit.</div>
+          <ul class="choice-points">
+            <li>Full /120 INDRIYA Index</li>
+            <li>NAAC/NBA aligned scoring</li>
+            <li>Priority consultant follow-up within 48 hrs</li>
+            <li>Same report &mdash; no re-registration needed</li>
+          </ul>
+          <button class="btn-choice solid" onclick="continueToPremium()">Continue to premium &rarr;</button>
+        </article>
+
       </div>
-      <div style="background:var(--pg);border:1.5px solid var(--bd);border-radius:11px;padding:16px 18px;margin-bottom:18px;">
-        <div style="font-size:11px;color:var(--tl);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:4px;">What happens next</div>
-        <div style="font-size:13.5px;color:var(--tm);line-height:1.65;">Submit your details below to unlock Dimensions 5 &amp; 6 now. Your Technical &amp; ERP audit is already saved. A senior UniRP consultant will review your complete INDRIYA submission and contact you within <strong style="color:var(--dg);">48 hours</strong>.</div>
-      </div>
-      <div class="form-row">
-        <div class="field-group" id="fg-regName"><label class="field-label">Confirm your name <span>*</span></label><input class="field-input" id="regName"><div class="error-msg">Required</div></div>
-        <div class="field-group" id="fg-regEmail"><label class="field-label">Confirm email <span>*</span></label><input class="field-input" id="regEmail" type="email"><div class="error-msg">Valid email required</div></div>
-      </div>
-      <div class="form-row single">
-        <div class="field-group"><label class="field-label">What are you hoping to achieve with INDRIYA?</label><textarea class="field-input" id="regGoals" rows="2" placeholder="e.g. NAAC A++ preparation, Smart Campus vision, AI readiness."></textarea></div>
-      </div>
-      <div class="nav-buttons">
-        <button class="btn-back" onclick="prev(5)">&larr; Back</button>
-        <span class="step-counter">Registration &middot; Step 5 of 7</span>
-        <button class="btn-unlock" onclick="unlockPremium()">Unlock advanced audit &rarr;</button>
+
+      <p class="choice-note">Your institution and auditor details from Step&nbsp;1 are already saved. Whichever path you choose, your record is kept as a single INDRIYA submission &mdash; premium-requested status is simply flagged so leadership knows whom to prioritise.</p>
+
+      <div class="nav-buttons" style="margin-top:18px;">
+        <button class="btn-back" onclick="prev(5)">&larr; Back to Dimension 4</button>
+        <span class="step-counter">Step 5 of 8 &middot; choose your path</span>
+        <span></span>
       </div>
     </div>
   </section>
@@ -684,8 +721,8 @@ textarea.field-input{resize:vertical;min-height:60px;}
     </header>
     <div class="results-body">
 
-      <div class="success-box">
-        <p>&#10004; Your INDRIYA audit has been recorded. A senior UniRP consultant will review your evidence and contact you within <strong>24&ndash;48 hours</strong> with a validated Smart Campus roadmap.</p>
+      <div class="success-box" id="successBox">
+        <p id="successMsg">&#10004; Your INDRIYA audit has been recorded. A senior UniRP consultant will review your evidence and contact you within <strong>24&ndash;48 hours</strong> with a validated Smart Campus roadmap.</p>
       </div>
 
       <div class="radar-wrap">
@@ -815,14 +852,15 @@ const MATURITY=[
 // State
 // ==========================================================
 const STEPS=['sec0','sec1','sec2','sec3','sec4','secGate','sec5','sec6','secResults'];
-const STEP_LABELS=['Context','Infrastructure','Experience','Automation','Data','Register','Innovation','Sustainability','Results'];
+const STEP_LABELS=['Context','Infrastructure','Experience','Automation','Data','Choose path','Innovation','Sustainability','Results'];
 const STEP_TIERS=['free','free','free','free','free','free','premium','premium','results'];
 let currentStep=0;
-let unlocked=false; // premium unlocked flag
+let unlocked=false; // true once user chose premium path
 const ratings={}; // { I1: 3, I2: 4, ... } (points 0..4)
 const remarks={}; // { I1: '...' }
 const photos={};  // { I1: [{dataUrl,name,desc}] }
 const ctx={};
+let lastPdfBlob=null; // filled by submitAudit for the Download button
 
 // ==========================================================
 // Progress bar
@@ -867,7 +905,7 @@ function renderAuditSections(){
     const el=document.getElementById(m.secId);
     const itemHtml=d.items.map((it,i)=>renderItem(d.key,it,i+1)).join('');
     const isLast=m.stepIdx===7;
-    const nextLabel=(m.stepIdx===4)?'Continue to registration &rarr;':(isLast?'Generate INDRIYA report &#10024;':'Continue &rarr;');
+    const nextLabel=(m.stepIdx===4)?'Choose your path &rarr;':(isLast?'Generate INDRIYA report &#10024;':'Continue &rarr;');
     const nextFn=(m.stepIdx===4)?`next(4)`:(isLast?`submitAudit()`:`next(${m.stepIdx})`);
     const submitClass=isLast?'btn-submit':'btn-next';
     el.innerHTML=`
@@ -1079,18 +1117,16 @@ function validateDimension(dim){
   return ok;
 }
 
-function unlockPremium(){
-  let ok=true;
-  const name=document.getElementById('regName').value.trim();
-  const em=document.getElementById('regEmail').value.trim();
-  if(!name){document.getElementById('fg-regName').classList.add('error');ok=false;}else document.getElementById('fg-regName').classList.remove('error');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){document.getElementById('fg-regEmail').classList.add('error');ok=false;}else document.getElementById('fg-regEmail').classList.remove('error');
-  if(!ok)return;
-  ctx.regName=name;ctx.regEmail=em;ctx.regGoals=document.getElementById('regGoals').value.trim();
+// Step 1 (context) already captured name, email, institution — no re-registration.
+// We only flag the record with premium_requested at submit time.
+function chooseFreeReport(){
+  unlocked=false;
+  submitAudit();
+}
+function continueToPremium(){
   unlocked=true;
-  // Push a non-blocking interest record (so we have the lead even if user drops off)
-  pushToSheet({type:'INDRIYA_REGISTRATION',timestamp:new Date().toISOString(),...ctx});
-  showStep(6);
+  renderProgress();
+  showStep(6); // jump to Dimension 5 (Innovation)
 }
 
 // ==========================================================
@@ -1118,29 +1154,46 @@ function maturityFor(total){
 // Submit & render results
 // ==========================================================
 async function submitAudit(){
-  // Final dim validation for sec6 (Sustainability)
-  if(!validateDimension(DIMENSIONS[5]))return;
+  // If the user chose the premium path, Dim 6 must be fully rated before submission.
+  if(unlocked && !validateDimension(DIMENSIONS[5])) return;
+
+  setOverlay('Generating your INDRIYA report','Building the PDF with observations &amp; photos embedded…');
   document.getElementById('overlay').classList.add('active');
 
   const results=computeScores();
-  const payload=buildPayload(results);
 
-  // Send to sheet (non-blocking)
-  try{await pushToSheet(payload);}catch(e){console.log('[v0] Sheet submit error:',e.message);}
-
+  // 1. Render on-screen results + print-area HTML (used as source for PDF)
   renderResults(results);
+
+  // 2. Generate PDF blob from the print area (photos embedded via data URLs)
+  let pdfBase64='';
+  lastPdfBlob=null;
+  try{
+    setOverlay('Generating your INDRIYA report','Rendering pages &amp; embedding photo evidence…');
+    lastPdfBlob=await generatePdfBlob();
+    pdfBase64=await blobToBase64(lastPdfBlob);
+  }catch(err){
+    console.log('[v0] PDF generation failed:',err && err.message);
+  }
+
+  // 3. Submit one record to the sheet (includes the PDF — saved to Drive server-side)
+  setOverlay('Saving your audit','Uploading report to Drive and recording submission…');
+  try{
+    await pushToSheet(buildPayload(results,pdfBase64));
+  }catch(e){
+    console.log('[v0] Sheet submit error:',e && e.message);
+  }
+
   showStep(8);
   document.getElementById('overlay').classList.remove('active');
 }
 
-function buildPayload(results){
-  // photos flattened
-  const flatPhotos=[];
-  Object.entries(photos).forEach(([itemId,arr])=>{
-    arr.forEach((p,i)=>{
-      flatPhotos.push({itemId,index:i,name:p.name,desc:p.desc,dataUrl:p.dataUrl});
-    });
-  });
+function setOverlay(title,msg){
+  const t=document.getElementById('ovTitle'); if(t) t.textContent=title;
+  const m=document.getElementById('ovMsg');  if(m) m.innerHTML=msg;
+}
+
+function buildPayload(results,pdfBase64){
   return {
     type:'INDRIYA_AUDIT',
     timestamp:new Date().toISOString(),
@@ -1152,21 +1205,88 @@ function buildPayload(results){
       total:results.total,
       max:results.max
     },
-    unlocked,
-    photos:flatPhotos
+    premium_requested:unlocked===true,
+    pdf_base64:pdfBase64||'',
+    pdf_filename:pdfFilename()
   };
 }
 
 async function pushToSheet(payload){
   const GS_URL='https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
   try{
-    await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   }catch(e){/* silent */}
+}
+
+// ──────────── PDF generation (html2pdf + jsPDF) ────────────
+function pdfFilename(){
+  const inst=(ctx.institution||'institution').replace(/[^\w\-]+/g,'_').substring(0,40);
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-').substring(0,19);
+  return `INDRIYA_${inst}_${stamp}.pdf`;
+}
+
+function generatePdfBlob(){
+  return new Promise((resolve,reject)=>{
+    const el=document.getElementById('printArea');
+    if(!el){reject(new Error('No print area.'));return;}
+    if(typeof html2pdf==='undefined'){reject(new Error('html2pdf not loaded.'));return;}
+
+    // Temporarily make the print area visible off-screen so html2canvas can render it.
+    const prev={display:el.style.display,position:el.style.position,left:el.style.left,top:el.style.top,width:el.style.width,background:el.style.background,zIndex:el.style.zIndex};
+    el.style.display='block';
+    el.style.position='fixed';
+    el.style.left='-10000px';
+    el.style.top='0';
+    el.style.width='780px';
+    el.style.background='#ffffff';
+    el.style.zIndex='-1';
+
+    const opt={
+      margin:[8,8,10,8],
+      filename:pdfFilename(),
+      image:{type:'jpeg',quality:0.9},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+      pagebreak:{mode:['css','legacy'],before:'.pr-page'}
+    };
+
+    html2pdf().set(opt).from(el).toPdf().get('pdf').then(pdf=>{
+      const blob=pdf.output('blob');
+      Object.assign(el.style,prev);
+      resolve(blob);
+    }).catch(err=>{
+      Object.assign(el.style,prev);
+      reject(err);
+    });
+  });
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      const s=String(r.result||'');
+      const idx=s.indexOf(',');
+      resolve(idx>=0?s.substring(idx+1):s);
+    };
+    r.onerror=()=>reject(r.error||new Error('FileReader error'));
+    r.readAsDataURL(blob);
+  });
 }
 
 function renderResults(r){
   document.getElementById('scoreNum').textContent=r.total;
   document.getElementById('scoreMax').textContent=r.max;
+
+  // Tier-aware success message
+  const msg=document.getElementById('successMsg');
+  if(msg){
+    if(unlocked){
+      msg.innerHTML='&#10004; Premium INDRIYA audit recorded. Your submission has been flagged for <strong>priority consultant review</strong> &mdash; our senior team will reach out within <strong>24&ndash;48 hours</strong>.';
+    }else{
+      msg.innerHTML='&#10004; Free-tier INDRIYA audit recorded. Your PDF report has been generated and is available for download below. If you&apos;d like the full /120 audit covering NAAC/NBA dimensions, reply to the confirmation email or contact us at <strong>bloomfieldinnovations.in</strong>.';
+    }
+  }
 
   // Maturity (scaled against what is actually evaluated)
   const pct=r.total/r.max;
@@ -1410,8 +1530,28 @@ function buildPrintArea(r,lv,roadmap){
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
 
 function printReport(){
+  // Prefer the already-generated blob (same PDF that was saved to Drive)
+  if(lastPdfBlob){
+    const url=URL.createObjectURL(lastPdfBlob);
+    const a=document.createElement('a');
+    a.href=url;a.download=pdfFilename();
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    return;
+  }
   if(!ctx.institution){alert('Please complete the audit first.');return;}
-  window.print();
+  // Fallback: generate on-demand, then download
+  setOverlay('Generating your PDF','One moment — preparing your INDRIYA report…');
+  document.getElementById('overlay').classList.add('active');
+  generatePdfBlob().then(b=>{
+    lastPdfBlob=b;
+    const url=URL.createObjectURL(b);
+    const a=document.createElement('a');
+    a.href=url;a.download=pdfFilename();
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+  }).catch(()=>window.print())
+    .finally(()=>document.getElementById('overlay').classList.remove('active'));
 }
 
 // ==========================================================
