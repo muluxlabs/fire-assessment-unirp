@@ -950,18 +950,14 @@ function renderItem(dimKey,item,num){
       <div class="remark-label">Remarks / observation</div>
       <textarea class="remark-input" placeholder="What did you see or hear on-ground? e.g. 3 of 12 classrooms have interactive displays; rest have projectors only." oninput="remarks['${item.id}']=this.value"></textarea>
     </div>
-            <div class="photo-row">
-              <label class="photo-drop">
-                <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotoUpload(event,'${item.id}')">
-                <span class="photo-drop-icon">&#128247;</span>
-                <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
-              </label>
-              <div class="photo-previews" id="prev-${item.id}"></div>
-              <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
-            </div>
+    <div class="photo-row">
+      <label class="photo-drop">
+        <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotoUpload(event,'${item.id}')">
+        <span class="photo-drop-icon">&#128247;</span>
+        <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
       </label>
       <div class="photo-previews" id="prev-${item.id}"></div>
-      <div class="photo-warn">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
+      <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
     </div>
   </div>`;
 }
@@ -1257,29 +1253,31 @@ function waitForImages(root){
 }
 
 function generatePdfBlob(){
-  const el=document.getElementById('printArea');
-  if(!el) return Promise.reject(new Error('No print area.'));
+  const src=document.getElementById('printArea');
+  if(!src) return Promise.reject(new Error('No print area.'));
   if(typeof html2pdf==='undefined') return Promise.reject(new Error('html2pdf not loaded.'));
-  if(!el.innerHTML || !el.innerHTML.trim()) return Promise.reject(new Error('Print area is empty — renderResults was not called.'));
+  if(!src.innerHTML || !src.innerHTML.trim()) return Promise.reject(new Error('Print area is empty — renderResults was not called.'));
 
-  // Render the element fully opaque on-screen so html2canvas captures real
-  // pixels. The progress overlay sits at z-index:1000 and covers it visually,
-  // so the user never sees it flash.
-  const prev={
-    display:el.style.display, position:el.style.position, left:el.style.left, top:el.style.top,
-    width:el.style.width, background:el.style.background, zIndex:el.style.zIndex,
-    opacity:el.style.opacity, pointerEvents:el.style.pointerEvents, visibility:el.style.visibility
-  };
-  el.style.display='block';
-  el.style.position='fixed';
-  el.style.left='0';
-  el.style.top='0';
-  el.style.width='794px';           // ~ A4 width in CSS px @ 96dpi
-  el.style.background='#ffffff';
-  el.style.zIndex='1';              // below overlay (z:1000) but fully rendered
-  el.style.opacity='1';             // MUST be 1 — html2canvas honors opacity
-  el.style.visibility='visible';
-  el.style.pointerEvents='none';
+  // Clone the report HTML into a fresh sandbox element that has NO matching
+  // global CSS rules (the baseline `#printArea{display:none}` only applies to
+  // the original id). This isolates the capture from any cascade surprises
+  // and removes the need to flip the original element visible.
+  const sandbox=document.createElement('div');
+  sandbox.setAttribute('aria-hidden','true');
+  sandbox.style.cssText=[
+    'position:absolute',
+    'left:0',
+    'top:0',
+    'width:794px',                 // ~ A4 width at 96dpi
+    'background:#ffffff',
+    'z-index:1',                   // below overlay (z:1000), above page content
+    'opacity:1',                   // must stay 1 — html2canvas honors opacity
+    'pointer-events:none',
+    'font-family:DM Sans, sans-serif',
+    'color:#0f1f1a'
+  ].join(';');
+  sandbox.innerHTML=src.innerHTML;
+  document.body.appendChild(sandbox);
 
   const opt={
     margin:[8,8,10,8],
@@ -1287,15 +1285,17 @@ function generatePdfBlob(){
     image:{type:'jpeg',quality:0.92},
     html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,windowWidth:794},
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
-    pagebreak:{mode:['css','legacy'],after:'.pr-page'}
+    // Page-break BEFORE every .pr-page except the first — guarantees exactly
+    // one page per .pr-page and no trailing blank page.
+    pagebreak:{mode:['css','legacy'],before:'.pr-page:not(:first-child)'}
   };
 
-  const restore=()=>Object.assign(el.style,prev);
+  const cleanup=()=>{ if(sandbox.parentNode) sandbox.parentNode.removeChild(sandbox); };
 
-  return waitForImages(el)
-    .then(()=>html2pdf().set(opt).from(el).output('blob'))
-    .then(blob=>{ restore(); return blob; })
-    .catch(err=>{ restore(); throw err; });
+  return waitForImages(sandbox)
+    .then(()=>html2pdf().set(opt).from(sandbox).output('blob'))
+    .then(blob=>{ cleanup(); return blob; })
+    .catch(err=>{ cleanup(); throw err; });
 }
 
 function blobToBase64(blob){
