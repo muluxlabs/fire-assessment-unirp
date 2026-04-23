@@ -29,7 +29,7 @@ Every submission is a JSON POST to the same `/exec` URL. The `type` field is the
 
 Sent by `index.html` on FIRE completion. Fields: `firstName`, `lastName`, `email`, `phone`, `role`, `department`, `institutionName`, `institutionType`, `studentCount`, `faculty`, `programs`, `city`, `currentERP`, `goals`, `fireIndex`, `category`, `totalRaw`, `pillarF/I/R/E/S`, plus every question as `<QID>_answer` / `<QID>_score`.
 
-### `type: "INDRIYA_INTEREST"` → tab **`INDRIYA Leads`**
+### `type: "INDRIYA_INTEREST"` → tab **`INDRIYA Registrations`**
 
 Sent by the INDRIYA teaser modal on the FIRE results page. Fields: `name`, `institution`, `email`, `phone`, `goals`.
 
@@ -64,18 +64,25 @@ Leadership priority is decided by the `Premium Requested` column on the **INDRIY
 
 ## Apps Script deployment
 
-1. Open the Google Sheet → `Extensions → Apps Script`.
-2. Paste the contents of `apps-script/Code.gs`.
-3. `Project Settings → Script properties`:
-   - `SHEET_ID` — the Google Sheet ID (from the Sheet's URL).
-   - `DRIVE_FOLDER_ID` — the parent Drive folder for audit PDFs.
-   - `NOTIFY_EMAIL` — (optional) email to receive submission notifications.
-4. `Deploy → Manage deployments → New version`.
+The three IDs are **hard-coded** at the top of `apps-script/Code.gs` so no Script Properties need to be set:
+
+```js
+const SHEET_ID        = '1YMjzF1SZ2UZElN573zlMn1AGOXTJ7usDxmHkE0-CVVE';
+const DRIVE_FOLDER_ID = '1GPsuUD-sLAnPEB8one1zM624kNr-_jko';
+const NOTIFY_EMAIL    = 'mulubrhan.legesse@bloomfieldinnovations.in';
+```
+
+To publish:
+
+1. Open the Google Sheet → `Extensions → Apps Script` (the script is bound to the sheet).
+2. Replace `Code.gs` with the contents of `apps-script/Code.gs` and save.
+3. Run `selfTest` once from the editor — this authorises Sheets + Drive + Gmail scopes in one go and confirms that the three IDs are reachable. It drops one row into each tab, creates a tiny test PDF in the Drive folder, and sends a test email.
+4. `Deploy → Manage deployments → Edit (pencil) → Version: "New version" → Deploy`.
    - **Execute as:** Me
    - **Who has access:** Anyone
-5. The `/exec` URL is already hard-coded in both HTML files. If you create a brand-new deployment (not a new version of the existing one), update `GS_URL` in `index.html` and `indriya.html`.
+5. The `/exec` URL is preserved, so no client change is needed. If you ever create a brand-new deployment, update `GS_URL` in both `index.html` and `indriya.html`.
 
-The script auto-creates any missing sheets (`FIRE Responses`, `INDRIYA Leads`, `INDRIYA Responses`) with pre-formatted headers on first use.
+The script auto-creates any missing tabs (`FIRE Responses`, `INDRIYA Registrations`, `INDRIYA Responses`) with pre-formatted headers on first use.
 
 ---
 
