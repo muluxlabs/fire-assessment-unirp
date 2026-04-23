@@ -168,22 +168,20 @@ img{max-width:100%;display:block;}
 .remark-input:focus{outline:none;border-color:var(--mg);background:white;box-shadow:0 0 0 3px rgba(10,104,82,0.08);}
 
 .photo-row{margin-left:34px;}
-.photo-label{font-size:10.5px;font-weight:600;color:var(--tm);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.photo-label .opt-tag{background:var(--bd);color:var(--tm);font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:none;font-weight:600;}
-.photo-drop{border:2px dashed var(--bd);border-radius:10px;padding:14px;text-align:center;background:var(--pg);cursor:pointer;transition:all 0.2s;position:relative;}
-.photo-drop:hover{border-color:var(--mg);background:var(--lg);}
+.photo-drop{position:relative;display:inline-flex;align-items:center;gap:7px;border:1px dashed var(--bd);border-radius:8px;padding:6px 12px;background:var(--pg);cursor:pointer;transition:all 0.18s;font-size:11.5px;color:var(--tm);line-height:1.2;}
+.photo-drop:hover{border-color:var(--mg);color:var(--dg);background:var(--lg);}
 .photo-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
-.photo-drop-inner{pointer-events:none;}
-.photo-drop-icon{font-size:20px;color:var(--mg);margin-bottom:4px;}
-.photo-drop-text{font-size:12.5px;color:var(--tm);}
-.photo-drop-text strong{color:var(--dg);}
-.photo-previews{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
-.photo-thumb{position:relative;width:120px;border:1.5px solid var(--bd);border-radius:10px;background:white;overflow:hidden;}
-.photo-thumb img{width:100%;height:86px;object-fit:cover;display:block;}
-.photo-thumb .pt-desc{width:100%;border:none;padding:6px 8px;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--td);border-top:1px solid var(--bd);resize:none;min-height:42px;background:var(--pg);}
+.photo-drop-icon{font-size:13px;color:var(--mg);}
+.photo-drop-text{font-weight:500;letter-spacing:0.2px;}
+.photo-drop-text .opt-tag{background:var(--bd);color:var(--tm);font-size:9px;padding:1px 6px;border-radius:8px;margin-left:5px;font-weight:600;letter-spacing:0.4px;}
+.photo-previews{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.photo-thumb{position:relative;width:96px;border:1px solid var(--bd);border-radius:8px;background:white;overflow:hidden;}
+.photo-thumb img{width:100%;height:64px;object-fit:cover;display:block;}
+.photo-thumb .pt-desc{width:100%;border:none;padding:5px 6px;font-size:10.5px;font-family:'DM Sans',sans-serif;color:var(--td);border-top:1px solid var(--bd);resize:none;min-height:36px;background:var(--pg);line-height:1.35;}
 .photo-thumb .pt-desc:focus{outline:none;background:white;}
-.photo-thumb .pt-del{position:absolute;top:4px;right:4px;background:rgba(12,42,36,0.8);color:white;border:none;width:22px;height:22px;border-radius:50%;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.photo-warn{font-size:11.5px;color:#a86830;background:#fef6e9;border:1px solid #f0e2c5;border-radius:7px;padding:7px 10px;margin-top:8px;line-height:1.55;}
+.photo-thumb .pt-del{position:absolute;top:3px;right:3px;background:rgba(12,42,36,0.85);color:white;border:none;width:18px;height:18px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.photo-warn{font-size:11px;color:#8a5520;background:#fef6e9;border:1px solid #f0e2c5;border-radius:6px;padding:6px 9px;margin-top:7px;line-height:1.5;display:none;}
+.photo-warn.show{display:block;}
 
 /* ── NAV BUTTONS ────────────────────────────────────────── */
 .nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:22px;border-top:1px solid var(--bd);gap:10px;flex-wrap:wrap;}
@@ -952,14 +950,15 @@ function renderItem(dimKey,item,num){
       <div class="remark-label">Remarks / observation</div>
       <textarea class="remark-input" placeholder="What did you see or hear on-ground? e.g. 3 of 12 classrooms have interactive displays; rest have projectors only." oninput="remarks['${item.id}']=this.value"></textarea>
     </div>
-    <div class="photo-row">
-      <div class="photo-label">Photo evidence <span class="opt-tag">Strongly recommended</span></div>
-      <label class="photo-drop">
-        <input type="file" accept="image/*" multiple onchange="handlePhotos(event,'${item.id}')">
-        <div class="photo-drop-inner">
-          <div class="photo-drop-icon">&#128247;</div>
-          <div class="photo-drop-text"><strong>Click to capture / upload photos</strong> of ${item.title.replace(/<[^>]*>/g,'').toLowerCase()}.</div>
-        </div>
+            <div class="photo-row">
+              <label class="photo-drop">
+                <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotoUpload(event,'${item.id}')">
+                <span class="photo-drop-icon">&#128247;</span>
+                <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
+              </label>
+              <div class="photo-previews" id="prev-${item.id}"></div>
+              <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
+            </div>
       </label>
       <div class="photo-previews" id="prev-${item.id}"></div>
       <div class="photo-warn">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
@@ -994,12 +993,15 @@ function handlePhotos(e,id){
 function renderPhotoPreviews(id){
   const wrap=document.getElementById('prev-'+id);
   if(!wrap)return;
-  wrap.innerHTML=(photos[id]||[]).map((p,i)=>`
+  const list=photos[id]||[];
+  wrap.innerHTML=list.map((p,i)=>`
     <div class="photo-thumb">
       <img src="${p.dataUrl}" alt="Evidence photo ${i+1} for ${id}">
       <button class="pt-del" type="button" aria-label="Remove photo" onclick="delPhoto('${id}',${i})">&times;</button>
-      <textarea class="pt-desc" placeholder="Describe this photo (e.g. Main library RFID gate at entrance)." oninput="photos['${id}'][${i}].desc=this.value">${p.desc||''}</textarea>
+      <textarea class="pt-desc" placeholder="Short, accurate description" oninput="photos['${id}'][${i}].desc=this.value">${p.desc||''}</textarea>
     </div>`).join('');
+  const warn=document.getElementById('warn-'+id);
+  if(warn) warn.classList.toggle('show',list.length>0);
 }
 
 function delPhoto(id,i){
@@ -1165,15 +1167,24 @@ async function submitAudit(){
   // 1. Render on-screen results + print-area HTML (used as source for PDF)
   renderResults(results);
 
+  // Give the browser a frame to lay out the fresh DOM and begin decoding images.
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+
   // 2. Generate PDF blob from the print area (photos embedded via data URLs)
   let pdfBase64='';
   lastPdfBlob=null;
   try{
     setOverlay('Generating your INDRIYA report','Rendering pages &amp; embedding photo evidence…');
     lastPdfBlob=await generatePdfBlob();
+    if(!lastPdfBlob || lastPdfBlob.size<800){
+      console.log('[v0] PDF looked empty, size=',lastPdfBlob && lastPdfBlob.size);
+      throw new Error('Generated PDF was empty');
+    }
     pdfBase64=await blobToBase64(lastPdfBlob);
   }catch(err){
     console.log('[v0] PDF generation failed:',err && err.message);
+    lastPdfBlob=null;
+    pdfBase64='';
   }
 
   // 3. Submit one record to the sheet (includes the PDF — saved to Drive server-side)
@@ -1225,40 +1236,66 @@ function pdfFilename(){
   return `INDRIYA_${inst}_${stamp}.pdf`;
 }
 
-function generatePdfBlob(){
-  return new Promise((resolve,reject)=>{
-    const el=document.getElementById('printArea');
-    if(!el){reject(new Error('No print area.'));return;}
-    if(typeof html2pdf==='undefined'){reject(new Error('html2pdf not loaded.'));return;}
-
-    // Temporarily make the print area visible off-screen so html2canvas can render it.
-    const prev={display:el.style.display,position:el.style.position,left:el.style.left,top:el.style.top,width:el.style.width,background:el.style.background,zIndex:el.style.zIndex};
-    el.style.display='block';
-    el.style.position='fixed';
-    el.style.left='-10000px';
-    el.style.top='0';
-    el.style.width='780px';
-    el.style.background='#ffffff';
-    el.style.zIndex='-1';
-
-    const opt={
-      margin:[8,8,10,8],
-      filename:pdfFilename(),
-      image:{type:'jpeg',quality:0.9},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
-      pagebreak:{mode:['css','legacy'],before:'.pr-page'}
-    };
-
-    html2pdf().set(opt).from(el).toPdf().get('pdf').then(pdf=>{
-      const blob=pdf.output('blob');
-      Object.assign(el.style,prev);
-      resolve(blob);
-    }).catch(err=>{
-      Object.assign(el.style,prev);
-      reject(err);
+// Wait for every <img> inside a node to actually decode, so html2canvas
+// doesn't snapshot a blank frame. Also resolves images that were already
+// complete before this call.
+function waitForImages(root){
+  const imgs=Array.from(root.querySelectorAll('img'));
+  if(!imgs.length) return Promise.resolve();
+  return Promise.all(imgs.map(img=>{
+    if(img.complete && img.naturalWidth>0){
+      return img.decode ? img.decode().catch(()=>{}) : Promise.resolve();
+    }
+    return new Promise(res=>{
+      const done=()=>res();
+      img.addEventListener('load',done,{once:true});
+      img.addEventListener('error',done,{once:true});
+      // Safety timeout — never hang PDF generation on a broken image.
+      setTimeout(done,4000);
     });
-  });
+  }));
+}
+
+function generatePdfBlob(){
+  const el=document.getElementById('printArea');
+  if(!el) return Promise.reject(new Error('No print area.'));
+  if(typeof html2pdf==='undefined') return Promise.reject(new Error('html2pdf not loaded.'));
+  if(!el.innerHTML || !el.innerHTML.trim()) return Promise.reject(new Error('Print area is empty — renderResults was not called.'));
+
+  // Render the element fully opaque on-screen so html2canvas captures real
+  // pixels. The progress overlay sits at z-index:1000 and covers it visually,
+  // so the user never sees it flash.
+  const prev={
+    display:el.style.display, position:el.style.position, left:el.style.left, top:el.style.top,
+    width:el.style.width, background:el.style.background, zIndex:el.style.zIndex,
+    opacity:el.style.opacity, pointerEvents:el.style.pointerEvents, visibility:el.style.visibility
+  };
+  el.style.display='block';
+  el.style.position='fixed';
+  el.style.left='0';
+  el.style.top='0';
+  el.style.width='794px';           // ~ A4 width in CSS px @ 96dpi
+  el.style.background='#ffffff';
+  el.style.zIndex='1';              // below overlay (z:1000) but fully rendered
+  el.style.opacity='1';             // MUST be 1 — html2canvas honors opacity
+  el.style.visibility='visible';
+  el.style.pointerEvents='none';
+
+  const opt={
+    margin:[8,8,10,8],
+    filename:pdfFilename(),
+    image:{type:'jpeg',quality:0.92},
+    html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,windowWidth:794},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+    pagebreak:{mode:['css','legacy'],after:'.pr-page'}
+  };
+
+  const restore=()=>Object.assign(el.style,prev);
+
+  return waitForImages(el)
+    .then(()=>html2pdf().set(opt).from(el).output('blob'))
+    .then(blob=>{ restore(); return blob; })
+    .catch(err=>{ restore(); throw err; });
 }
 
 function blobToBase64(blob){
