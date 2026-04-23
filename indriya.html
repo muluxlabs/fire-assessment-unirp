@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INDRIYA Smart Campus Audit | UniRP &ndash; Bloomfield Innovations</title>
+<meta name="description" content="INDRIYA &mdash; Institutional Digital Readiness & Intelligent Yield Assessment. A consultant-grade smart-campus audit framework by Bloomfield Innovations.">
+<meta name="theme-color" content="#044a3d">
+<link rel="icon" href="assets/unirp-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{
+  --dg:#044a3d; --mg:#0a6852; --ag:#2d8f6f; --lg:#e8f5f0; --pg:#f2faf7;
+  --gold:#c9a84c; --td:#0f1f1a; --tm:#3a5248; --tl:#7a9590; --bd:#d4e8e0;
+  --shadow:0 8px 40px rgba(4,74,61,0.12);
+  --ink:#0c2a24;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:#fafcfb;}
+body{font-family:'DM Sans',sans-serif;background:#fafcfb;color:var(--td);min-height:100vh;overflow-x:hidden;line-height:1.55;}
+img{max-width:100%;display:block;}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+.site-header{background:var(--dg);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,0.18);}
+.header-inner{max-width:1400px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.logo-area{display:flex;align-items:center;gap:18px;}
+.header-logo{height:30px;width:auto;}
+.header-divider{width:1px;height:28px;background:rgba(255,255,255,0.22);}
+.logo-text .brand{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:white;letter-spacing:0.3px;line-height:1.1;}
+.logo-text .tagline{font-size:10px;color:rgba(255,255,255,0.52);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px;}
+.header-nav{display:flex;align-items:center;gap:6px;}
+.nav-link{color:rgba(255,255,255,0.78);font-size:12.5px;font-weight:500;text-decoration:none;padding:8px 14px;border-radius:22px;transition:all 0.18s;letter-spacing:0.3px;}
+.nav-link:hover{color:white;background:rgba(255,255,255,0.07);}
+.nav-link.active{color:var(--dg);background:var(--gold);}
+@media(max-width:720px){.header-nav{width:100%;justify-content:center;}.header-inner{padding:12px 16px;}}
+
+/* ── HERO ───────────────────────────────────────────────── */
+.hero{background:linear-gradient(135deg,var(--dg) 0%,var(--mg) 65%,var(--ag) 100%);color:white;padding:68px 32px 80px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(255,255,255,0.05) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,0.1) 0%,transparent 50%);}
+.hero-inner{position:relative;max-width:900px;margin:0 auto;}
+.hero-kicker{display:inline-block;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold);padding:6px 16px;border-radius:30px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(36px,5.5vw,62px);font-weight:700;line-height:1.05;margin-bottom:14px;}
+.hero h1 span{color:var(--gold);font-style:italic;}
+.hero-full{font-size:13px;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;font-weight:500;}
+.hero-sub{font-size:16px;color:rgba(255,255,255,0.82);max-width:640px;margin:0 auto 28px;line-height:1.75;font-weight:300;}
+.hero-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;}
+.pill{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:7px 16px;border-radius:30px;font-size:12px;font-weight:500;}
+.hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-hero{padding:14px 28px;border-radius:10px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;border:none;transition:all 0.22s;letter-spacing:0.4px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;}
+.btn-hero.primary{background:var(--gold);color:var(--dg);box-shadow:0 6px 22px rgba(201,168,76,0.35);}
+.btn-hero.primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(201,168,76,0.45);}
+.btn-hero.ghost{background:rgba(255,255,255,0.08);color:white;border:1.5px solid rgba(255,255,255,0.3);}
+.btn-hero.ghost:hover{background:rgba(255,255,255,0.14);}
+
+/* ── SHOW·SCORE·SOLVE ───────────────────────────────────── */
+.show-section{max-width:1180px;margin:0 auto;padding:64px 28px 24px;}
+.section-kicker{color:var(--mg);font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;margin-bottom:10px;text-align:center;}
+.section-heading{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,40px);font-weight:700;color:var(--dg);text-align:center;margin-bottom:14px;line-height:1.15;}
+.section-intro{text-align:center;font-size:15px;color:var(--tm);max-width:620px;margin:0 auto 38px;line-height:1.75;}
+.triptych{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:820px){.triptych{grid-template-columns:1fr;}}
+.trip-card{background:white;border:1.5px solid var(--bd);border-radius:16px;padding:28px 26px;position:relative;transition:all 0.25s;}
+.trip-card:hover{border-color:var(--mg);transform:translateY(-3px);box-shadow:var(--shadow);}
+.trip-num{position:absolute;top:-14px;left:24px;background:var(--dg);color:var(--gold);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:700;letter-spacing:0;}
+.trip-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--dg);margin-bottom:6px;letter-spacing:0.5px;}
+.trip-tag{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;}
+.trip-desc{font-size:13.5px;color:var(--tm);line-height:1.7;}
+
+/* ── DIMENSIONS PREVIEW ─────────────────────────────────── */
+.dim-section{max-width:1180px;margin:0 auto;padding:40px 28px 40px;}
+.dim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:900px){.dim-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:560px){.dim-grid{grid-template-columns:1fr;}}
+.dim-card{background:white;border:1.5px solid var(--bd);border-radius:14px;padding:20px 18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}
+.dim-card.premium{background:linear-gradient(135deg,#fbf6e8,#fff);border-color:rgba(201,168,76,0.4);}
+.dim-card .dim-tag{position:absolute;top:10px;right:10px;font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:3px 9px;border-radius:12px;}
+.dim-card.free .dim-tag{background:var(--lg);color:var(--mg);}
+.dim-card.premium .dim-tag{background:var(--gold);color:white;}
+.dim-icon{width:38px;height:38px;border-radius:10px;background:var(--lg);color:var(--dg);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:20px;margin-bottom:6px;}
+.dim-card.premium .dim-icon{background:rgba(201,168,76,0.18);color:#8d6f22;}
+.dim-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--dg);line-height:1.2;}
+.dim-score{font-size:10.5px;color:var(--tl);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;}
+.dim-desc{font-size:12.5px;color:var(--tm);margin-top:4px;line-height:1.6;}
+
+/* ── BEFORE AFTER STORYBOARD ────────────────────────────── */
+.story-section{background:linear-gradient(180deg,#f2faf7 0%,#fafcfb 100%);padding:64px 28px;margin:24px 0;}
+.story-inner{max-width:1180px;margin:0 auto;}
+.story-grid{display:flex;flex-direction:column;gap:36px;}
+.story-row{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:stretch;background:white;border:1.5px solid var(--bd);border-radius:16px;padding:22px;box-shadow:0 4px 18px rgba(4,74,61,0.04);}
+@media(max-width:820px){.story-row{grid-template-columns:1fr;gap:14px;}}
+.story-before,.story-after{padding:16px;border-radius:12px;}
+.story-before{background:#fbefec;border:1px dashed #e5b5ac;}
+.story-after{background:#ecf7f2;border:1px dashed #a5d4bf;}
+.story-label{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.story-before .story-label{color:#c0392b;}
+.story-after .story-label{color:var(--mg);}
+.story-heading{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;}
+.story-points{list-style:none;padding:0;margin:0;}
+.story-points li{font-size:13px;color:var(--tm);line-height:1.65;padding-left:18px;position:relative;margin-bottom:4px;}
+.story-before .story-points li::before{content:'✕';color:#c0392b;font-weight:700;position:absolute;left:0;}
+.story-after .story-points li::before{content:'✓';color:var(--mg);font-weight:700;position:absolute;left:0;}
+.story-arrow{display:flex;align-items:center;justify-content:center;padding:0 10px;}
+.story-arrow-inner{width:46px;height:46px;border-radius:50%;background:var(--dg);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;box-shadow:0 6px 18px rgba(4,74,61,0.25);}
+@media(max-width:820px){.story-arrow{padding:0;}.story-arrow-inner{transform:rotate(90deg);}}
+.story-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--dg);grid-column:1/-1;margin-bottom:-4px;display:flex;align-items:center;gap:10px;}
+.story-title .story-num{background:var(--gold);color:white;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.story-impact{grid-column:1/-1;font-size:12.5px;color:var(--mg);font-weight:600;padding-top:8px;border-top:1px solid var(--bd);}
+.story-impact strong{color:var(--dg);}
+
+/* ── PROGRESS BAR ───────────────────────────────────────── */
+.progress-bar-wrap{background:white;border-bottom:1px solid var(--bd);padding:0 20px;position:sticky;top:60px;z-index:90;box-shadow:0 2px 10px rgba(0,0,0,0.04);display:none;}
+.progress-bar-wrap.show{display:block;}
+.progress-inner{max-width:1400px;margin:0 auto;padding:10px 0;}
+.step-indicators{display:flex;align-items:center;overflow-x:auto;gap:0;scrollbar-width:none;}
+.step-indicators::-webkit-scrollbar{display:none;}
+.step-item{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;cursor:pointer;transition:all 0.2s;flex-shrink:0;opacity:0.35;}
+.step-item.active{opacity:1;}
+.step-item.completed{opacity:0.7;}
+.step-dot{width:26px;height:26px;border-radius:50%;background:var(--bd);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tl);transition:all 0.3s;flex-shrink:0;}
+.step-item.active .step-dot{background:var(--dg);color:var(--gold);}
+.step-item.completed .step-dot{background:var(--ag);color:white;}
+.step-label{font-size:11.5px;font-weight:500;color:var(--tm);white-space:nowrap;}
+.step-item.active .step-label{color:var(--dg);font-weight:600;}
+.step-connector{width:18px;height:2px;background:var(--bd);flex-shrink:0;}
+.step-connector.done{background:var(--ag);}
+.step-item.locked .step-dot{background:#e7d9a9;color:#8d6f22;}
+
+/* ── AUDIT FORM ─────────────────────────────────────────── */
+.audit-wrap{max-width:900px;margin:0 auto;padding:48px 20px 80px;display:none;}
+.audit-wrap.show{display:block;animation:fade 0.35s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.section-card{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;display:none;}
+.section-card.active{display:block;animation:fade 0.35s ease;}
+.section-head{background:linear-gradient(135deg,var(--dg),var(--mg));padding:32px 32px 28px;color:white;position:relative;overflow:hidden;}
+.section-head::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 85% 0%,rgba(201,168,76,0.15) 0%,transparent 55%);}
+.section-head-inner{position:relative;}
+.section-tag{display:inline-block;background:rgba(201,168,76,0.2);color:var(--gold);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 12px;border-radius:30px;margin-bottom:10px;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;margin-bottom:6px;line-height:1.2;}
+.section-sub{font-size:13.5px;color:rgba(255,255,255,0.74);font-weight:300;line-height:1.7;max-width:640px;}
+.section-body{padding:32px;}
+
+/* ── AUDIT ITEMS ────────────────────────────────────────── */
+.audit-item{padding:22px 0;border-bottom:1px solid var(--bd);}
+.audit-item:first-child{padding-top:0;}
+.audit-item:last-child{border-bottom:none;padding-bottom:0;}
+.ai-head{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;}
+.ai-num{background:var(--dg);color:var(--gold);width:24px;height:24px;border-radius:6px;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;margin-top:1px;}
+.ai-title{font-size:15px;font-weight:600;color:var(--td);line-height:1.5;flex:1;}
+.ai-hint{font-size:12.5px;color:var(--tl);margin-top:4px;font-weight:400;font-style:italic;}
+
+.rate-row{margin-left:34px;margin-bottom:12px;}
+.rate-label{font-size:10.5px;font-weight:600;color:var(--tm);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;}
+.rate-options{display:flex;gap:6px;flex-wrap:wrap;}
+.rate-opt{flex:1;min-width:120px;border:1.5px solid var(--bd);background:var(--pg);padding:11px 10px;border-radius:9px;cursor:pointer;text-align:center;transition:all 0.18s;}
+.rate-opt:hover{border-color:var(--ag);background:var(--lg);}
+.rate-opt.selected{border-color:var(--dg);background:var(--lg);}
+.rate-stars{color:var(--gold);font-size:13px;letter-spacing:2px;}
+.rate-stars .dim{color:#d9d0b3;}
+.rate-lbl{font-size:11px;font-weight:600;color:var(--tm);margin-top:3px;}
+.rate-opt.selected .rate-lbl{color:var(--dg);}
+.rate-pts{font-size:9.5px;color:var(--tl);letter-spacing:0.5px;margin-top:2px;}
+
+.remark-row{margin-left:34px;margin-bottom:10px;}
+.remark-label{font-size:10.5px;font-weight:600;color:var(--tm);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;}
+.remark-input{width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:8px;font-size:13.5px;color:var(--td);font-family:'DM Sans',sans-serif;background:var(--pg);resize:vertical;min-height:58px;transition:all 0.2s;}
+.remark-input:focus{outline:none;border-color:var(--mg);background:white;box-shadow:0 0 0 3px rgba(10,104,82,0.08);}
+
+.photo-row{margin-left:34px;}
+.photo-label{font-size:10.5px;font-weight:600;color:var(--tm);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.photo-label .opt-tag{background:var(--bd);color:var(--tm);font-size:9px;padding:2px 8px;border-radius:10px;letter-spacing:0.5px;text-transform:none;font-weight:600;}
+.photo-drop{border:2px dashed var(--bd);border-radius:10px;padding:14px;text-align:center;background:var(--pg);cursor:pointer;transition:all 0.2s;position:relative;}
+.photo-drop:hover{border-color:var(--mg);background:var(--lg);}
+.photo-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.photo-drop-inner{pointer-events:none;}
+.photo-drop-icon{font-size:20px;color:var(--mg);margin-bottom:4px;}
+.photo-drop-text{font-size:12.5px;color:var(--tm);}
+.photo-drop-text strong{color:var(--dg);}
+.photo-previews{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.photo-thumb{position:relative;width:120px;border:1.5px solid var(--bd);border-radius:10px;background:white;overflow:hidden;}
+.photo-thumb img{width:100%;height:86px;object-fit:cover;display:block;}
+.photo-thumb .pt-desc{width:100%;border:none;padding:6px 8px;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--td);border-top:1px solid var(--bd);resize:none;min-height:42px;background:var(--pg);}
+.photo-thumb .pt-desc:focus{outline:none;background:white;}
+.photo-thumb .pt-del{position:absolute;top:4px;right:4px;background:rgba(12,42,36,0.8);color:white;border:none;width:22px;height:22px;border-radius:50%;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.photo-warn{font-size:11.5px;color:#a86830;background:#fef6e9;border:1px solid #f0e2c5;border-radius:7px;padding:7px 10px;margin-top:8px;line-height:1.55;}
+
+/* ── NAV BUTTONS ────────────────────────────────────────── */
+.nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:22px;border-top:1px solid var(--bd);gap:10px;flex-wrap:wrap;}
+.btn-back,.btn-next,.btn-submit,.btn-unlock{padding:12px 26px;border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;border:none;letter-spacing:0.3px;}
+.btn-back{background:white;border:1.5px solid var(--bd);color:var(--tm);}
+.btn-back:hover{border-color:var(--mg);color:var(--mg);}
+.btn-next{background:linear-gradient(135deg,var(--dg),var(--mg));color:white;box-shadow:0 4px 16px rgba(4,74,61,0.22);}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 7px 24px rgba(4,74,61,0.3);}
+.btn-submit{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 4px 16px rgba(201,168,76,0.3);}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 7px 24px rgba(201,168,76,0.4);}
+.btn-unlock{background:linear-gradient(135deg,#c9a84c,#b8943a);color:white;box-shadow:0 4px 16px rgba(201,168,76,0.3);}
+.step-counter{font-size:12px;color:var(--tl);}
+
+/* ── FORM FIELDS ────────────────────────────────────────── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-row.single{grid-template-columns:1fr;}
+@media(max-width:560px){.form-row{grid-template-columns:1fr;}}
+.field-group{display:flex;flex-direction:column;gap:5px;}
+.field-label{font-size:10.5px;font-weight:600;color:var(--tm);letter-spacing:1px;text-transform:uppercase;}
+.field-label span{color:#e05252;}
+.field-input{padding:11px 13px;border:1.5px solid var(--bd);border-radius:9px;font-size:14px;color:var(--td);font-family:'DM Sans',sans-serif;background:var(--pg);transition:all 0.2s;}
+.field-input:focus{outline:none;border-color:var(--mg);background:white;box-shadow:0 0 0 3px rgba(10,104,82,0.07);}
+select.field-input{cursor:pointer;}
+textarea.field-input{resize:vertical;min-height:60px;}
+.error-msg{color:#c0392b;font-size:11.5px;display:none;}
+.field-group.error .field-input{border-color:#e05252;}
+.field-group.error .error-msg{display:block;}
+.q-err{animation:shake 0.4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
+.q-err-msg{color:#c0392b;font-size:11.5px;font-weight:600;margin-top:8px;margin-left:34px;padding:6px 10px;background:#fdf0ef;border-radius:6px;border-left:3px solid #c0392b;display:none;}
+.audit-item.q-err .q-err-msg{display:block;}
+
+/* ── GATE WALL ──────────────────────────────────────────── */
+.gate-card{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;display:none;}
+.gate-card.active{display:block;animation:fade 0.35s ease;}
+.gate-head{background:linear-gradient(135deg,#3d2a0a,#7a5a1c,#c9a84c);padding:34px 32px;color:white;text-align:center;position:relative;overflow:hidden;}
+.gate-head::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(255,255,255,0.12) 0%,transparent 55%);}
+.gate-head-inner{position:relative;}
+.gate-icon{font-size:38px;margin-bottom:8px;}
+.gate-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;margin-bottom:6px;letter-spacing:0.3px;}
+.gate-sub{font-size:13.5px;color:rgba(255,255,255,0.82);max-width:520px;margin:0 auto;line-height:1.7;}
+.gate-body{padding:32px;}
+.gate-features{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+@media(max-width:560px){.gate-features{grid-template-columns:1fr;}}
+.gate-feat{background:linear-gradient(135deg,#fbf6e8,#fff);border:1.5px solid #ecdfba;border-radius:11px;padding:14px 16px;}
+.gate-feat-title{font-weight:700;color:#7a5a1c;font-size:13px;margin-bottom:4px;display:flex;align-items:center;gap:7px;}
+.gate-feat-desc{font-size:12px;color:var(--tm);line-height:1.55;}
+
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+@media(max-width:720px){.choice-grid{grid-template-columns:1fr;}}
+.choice-card{background:var(--pg);border:1.5px solid var(--bd);border-radius:14px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:10px;position:relative;transition:all 0.22s;}
+.choice-card:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(4,74,61,0.08);}
+.choice-card.premium{background:linear-gradient(160deg,#fbf6e8 0%,#fff 55%,#fff 100%);border-color:#ecdfba;}
+.choice-tag{position:absolute;top:14px;right:14px;font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 10px;border-radius:12px;}
+.choice-card.free .choice-tag{background:var(--lg);color:var(--mg);}
+.choice-card.premium .choice-tag{background:var(--gold);color:white;}
+.choice-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--dg);padding-right:90px;line-height:1.2;}
+.choice-sub{font-size:13px;color:var(--tm);line-height:1.6;}
+.choice-points{list-style:none;padding:0;margin:4px 0 0;}
+.choice-points li{font-size:12.5px;color:var(--tm);line-height:1.7;padding-left:18px;position:relative;}
+.choice-points li::before{content:'✓';color:var(--mg);font-weight:700;position:absolute;left:0;}
+.choice-card.premium .choice-points li::before{color:#b8943a;}
+.btn-choice{margin-top:auto;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;letter-spacing:0.3px;transition:all 0.2s;}
+.btn-choice.outline{background:white;color:var(--dg);border:1.5px solid var(--bd);}
+.btn-choice.outline:hover{border-color:var(--mg);}
+.btn-choice.solid{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 4px 16px rgba(201,168,76,0.3);}
+.btn-choice.solid:hover{transform:translateY(-1px);box-shadow:0 7px 24px rgba(201,168,76,0.4);}
+.choice-note{font-size:12px;color:var(--tl);line-height:1.6;text-align:center;padding:0 10px;}
+
+/* ── RESULTS ────────────────────────────────────────────── */
+.results-card{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;display:none;}
+.results-card.active{display:block;animation:fade 0.35s ease;}
+.results-head{background:linear-gradient(135deg,var(--dg),var(--mg));padding:44px 32px;color:white;text-align:center;position:relative;overflow:hidden;}
+.results-head::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(201,168,76,0.15) 0%,transparent 55%);}
+.results-head-inner{position:relative;}
+.results-head h2{font-family:'Cormorant Garamond',serif;font-size:32px;margin-bottom:4px;font-weight:700;}
+.results-head .r-sub{font-size:13px;color:rgba(255,255,255,0.72);font-weight:300;}
+.score-circle{width:170px;height:170px;border-radius:50%;border:6px solid rgba(201,168,76,0.3);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:22px auto 14px;background:rgba(255,255,255,0.05);}
+.score-number{font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:700;line-height:1;color:var(--gold);}
+.score-total{font-size:14px;color:rgba(255,255,255,0.6);margin-top:4px;}
+.score-lbl{font-size:10px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:2.5px;margin-top:6px;}
+.score-cat{display:inline-block;padding:8px 22px;border-radius:30px;font-size:14px;font-weight:700;margin-top:10px;letter-spacing:0.3px;}
+.results-body{padding:32px;}
+.radar-wrap{background:var(--pg);border:1.5px solid var(--bd);border-radius:14px;padding:20px;margin-bottom:24px;}
+.radar-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:700;color:var(--dg);margin-bottom:10px;text-align:center;}
+.radar-canvas-wrap{position:relative;height:320px;max-width:520px;margin:0 auto;}
+
+.scorecard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+@media(max-width:720px){.scorecard-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.scorecard-grid{grid-template-columns:1fr;}}
+.sc-card{background:var(--pg);border:1.5px solid var(--bd);border-radius:12px;padding:16px 14px;}
+.sc-card.locked{background:#f6f0df;border-color:#ecdfba;}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sc-icon{width:32px;height:32px;border-radius:8px;background:var(--lg);color:var(--dg);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:16px;}
+.sc-card.locked .sc-icon{background:rgba(201,168,76,0.2);color:#8d6f22;}
+.sc-tag{font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;padding:2px 8px;border-radius:10px;background:var(--lg);color:var(--mg);}
+.sc-card.locked .sc-tag{background:var(--gold);color:white;}
+.sc-name{font-size:12.5px;font-weight:600;color:var(--ink);margin-bottom:4px;line-height:1.3;}
+.sc-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--dg);line-height:1;}
+.sc-val .sc-max{font-size:13px;color:var(--tl);font-weight:400;}
+.sc-card.locked .sc-val{color:#8d6f22;}
+.sc-bar{margin-top:8px;background:var(--bd);border-radius:3px;height:5px;overflow:hidden;}
+.sc-bar-fill{height:100%;background:linear-gradient(90deg,var(--mg),var(--ag));border-radius:3px;}
+.sc-card.locked .sc-bar-fill{background:linear-gradient(90deg,#c9a84c,#e0c47f);}
+
+/* ── MATURITY LEVEL ─────────────────────────────────────── */
+.maturity-section{margin-bottom:24px;}
+.maturity-head{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--dg);margin-bottom:12px;font-weight:700;}
+.level-track{position:relative;display:flex;align-items:stretch;gap:0;border-radius:12px;overflow:hidden;border:1.5px solid var(--bd);}
+.level-step{flex:1;padding:16px 10px 14px;text-align:center;transition:all 0.3s;position:relative;}
+.level-step:not(:last-child)::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:rgba(255,255,255,0.18);}
+.level-step .ls-icon{font-size:22px;margin-bottom:4px;}
+.level-step .ls-score{font-size:10px;font-weight:700;opacity:0.75;letter-spacing:0.5px;}
+.level-step .ls-name{font-size:11px;font-weight:600;margin-top:3px;line-height:1.3;}
+.level-step.past{background:#e8f5f0;opacity:0.55;}
+.level-step.current{transform:scale(1.04);z-index:2;box-shadow:0 4px 20px rgba(4,74,61,0.2);}
+.level-step.future{background:#f8f8f8;opacity:0.42;}
+.current-marker{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--dg);font-size:10px;font-weight:800;padding:3px 9px;border-radius:18px;white-space:nowrap;letter-spacing:0.3px;box-shadow:0 2px 8px rgba(201,168,76,0.4);}
+.level-caption{margin-top:12px;padding:14px 16px;background:var(--lg);border-radius:10px;border-left:4px solid var(--dg);}
+.level-caption p{font-size:13px;color:var(--tm);line-height:1.65;}
+.level-caption strong{color:var(--dg);}
+
+/* ── ROADMAP ─────────────────────────────────────────────── */
+.roadmap{background:var(--lg);border-radius:12px;padding:22px 24px;margin-bottom:24px;}
+.roadmap h3{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--dg);margin-bottom:14px;font-weight:700;}
+.roadmap-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.roadmap-item:last-child{margin-bottom:0;}
+.rd-num{width:22px;height:22px;background:var(--dg);color:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.rd-text{font-size:13.5px;color:var(--tm);line-height:1.65;}
+.rd-text strong{color:var(--dg);}
+
+/* ── ACTION BUTTONS ─────────────────────────────────────── */
+.action-row{text-align:center;margin-top:24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-action{padding:11px 22px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;border:none;letter-spacing:0.3px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.btn-action.green{background:var(--dg);color:white;}
+.btn-action.green:hover{background:var(--mg);}
+.btn-action.outline{background:white;color:var(--tm);border:1.5px solid var(--bd);}
+.btn-action.outline:hover{border-color:var(--mg);color:var(--mg);}
+.btn-action.gold{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 3px 12px rgba(201,168,76,0.3);}
+.btn-action.gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,0.4);}
+
+.success-box{text-align:center;padding:18px;background:var(--lg);border-radius:11px;margin-bottom:20px;border:1.5px solid var(--bd);}
+.success-box p{font-size:13.5px;color:var(--tm);line-height:1.7;}
+.success-box strong{color:var(--dg);}
+
+/* ── BFI LOCKUP FOOTER ──────────────────────────────────── */
+.bfi-lockup{max-width:1180px;margin:48px auto 0;padding:0 28px;}
+.bfi-card{background:var(--dg);border-radius:16px;padding:28px 32px;color:white;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;box-shadow:0 10px 40px rgba(4,74,61,0.25);}
+.bfi-card img{max-height:70px;width:auto;}
+.bfi-text{font-size:13px;color:rgba(255,255,255,0.76);line-height:1.65;max-width:520px;}
+.bfi-text strong{color:white;display:block;font-family:'Cormorant Garamond',serif;font-size:18px;margin-bottom:4px;font-weight:700;}
+
+/* ── FOOTER ─────────────────────────────────────────────── */
+.site-footer{background:var(--ink);color:rgba(255,255,255,0.55);text-align:center;padding:22px;font-size:12.5px;margin-top:40px;}
+.site-footer a{color:var(--gold);text-decoration:none;}
+.site-footer a:hover{text-decoration:underline;}
+
+/* ── LOADING ────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(4,74,61,0.7);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
+.overlay.active{display:flex;}
+.overlay-box{background:white;border-radius:18px;padding:36px 44px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.25);max-width:380px;}
+.spinner{width:42px;height:42px;border:4px solid var(--bd);border-top-color:var(--dg);border-radius:50%;animation:spin 0.9s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.overlay-box h3{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--dg);margin-bottom:4px;font-weight:700;}
+.overlay-box p{font-size:13px;color:var(--tl);line-height:1.55;}
+
+/* ── PRINT REPORT ───────────────────────────────────────── */
+#printArea{display:none;}
+@media print{
+  @page{size:A4;margin:12mm 14mm;}
+  body>*:not(#printArea){display:none!important;}
+  #printArea{display:block!important;font-family:'DM Sans',sans-serif;color:var(--ink);}
+  .pr-colors{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .pr-page{page-break-after:always;}
+  .pr-page:last-child{page-break-after:auto;}
+}
+
+/* ── UTILITIES ──────────────────────────────────────────── */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+@media(max-width:640px){.hero{padding:44px 18px 52px;}.section-body,.results-body,.gate-body{padding:22px 20px;}.section-head,.results-head,.gate-head{padding:26px 22px;}}
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─────────────────────────────────────────── -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <img src="assets/unirp-logo.png" alt="UniRP" class="header-logo">
+      <div class="header-divider"></div>
+      <div class="logo-text">
+        <div class="brand">Bloomfield Innovations</div>
+        <div class="tagline">University Resource Planning</div>
+      </div>
+    </div>
+    <nav class="header-nav" aria-label="Primary">
+      <a class="nav-link" href="index.html">FIRE Assessment</a>
+      <a class="nav-link active" href="indriya.html" aria-current="page">INDRIYA Audit</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ─── LANDING ────────────────────────────��──────────── -->
+<div id="landing">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="hero-kicker">Smart Campus Audit Framework</span>
+      <h1><span>INDRIYA</span></h1>
+      <p class="hero-full">Institutional Digital Readiness &amp; Intelligent Yield Assessment</p>
+      <p class="hero-sub">Move beyond opinions. INDRIYA visually and analytically proves whether your campus is future-ready &mdash; combining on-ground observation, scoring, and a consultant-led transformation roadmap.</p>
+      <div class="hero-pills">
+        <span class="pill">6 Audit Dimensions</span>
+        <span class="pill">Score out of 120</span>
+        <span class="pill">Photo-evidence based</span>
+        <span class="pill">Auto-generated report</span>
+      </div>
+      <div class="hero-ctas">
+        <button class="btn-hero primary" onclick="startAudit()">Start Free Audit &rarr;</button>
+        <a class="btn-hero ghost" href="#framework">Understand the framework</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOW · SCORE · SOLVE -->
+  <section class="show-section" id="framework">
+    <p class="section-kicker">The INDRIYA Approach</p>
+    <h2 class="section-heading">We don&apos;t just propose software<br>&mdash; we Show, Score, and Solve.</h2>
+    <p class="section-intro">Instead of only talking about digital transformation, INDRIYA captures your current reality on-ground, scores it against a structured framework, and defines the roadmap to a Smart Campus.</p>
+    <div class="triptych">
+      <article class="trip-card">
+        <div class="trip-num">1</div>
+        <div class="trip-tag">Evidence-led</div>
+        <h3 class="trip-title">SHOW</h3>
+        <p class="trip-desc">Capture real campus pictures, observations and operational reality &mdash; Wi-Fi coverage, admissions queues, server rooms, paper workflows, dashboard screens. What exists today, seen clearly.</p>
+      </article>
+      <article class="trip-card">
+        <div class="trip-num">2</div>
+        <div class="trip-tag">Structured</div>
+        <h3 class="trip-title">SCORE</h3>
+        <p class="trip-desc">Every dimension is rated on a disciplined 0&ndash;20 scale using the INDRIYA index &mdash; 120 points across six areas that together define a Smart Campus.</p>
+      </article>
+      <article class="trip-card">
+        <div class="trip-num">3</div>
+        <div class="trip-tag">Consultant-led</div>
+        <h3 class="trip-title">SOLVE</h3>
+        <p class="trip-desc">Bloomfield Innovations and UniRP experts translate findings into a phased transformation roadmap &mdash; Quick Wins in 0&ndash;3 months, structural interventions over 12&ndash;24 months.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- DIMENSIONS -->
+  <section class="dim-section">
+    <p class="section-kicker">Six Audit Dimensions</p>
+    <h2 class="section-heading">What INDRIYA measures</h2>
+    <p class="section-intro">The first four dimensions focus on technical and ERP readiness &mdash; free to complete online. The final two, mapped to NAAC/NBA advanced academic audit, require registration and are reviewed by our senior consultants.</p>
+    <div class="dim-grid">
+      <div class="dim-card free">
+        <span class="dim-tag">Free Tier</span>
+        <div class="dim-icon">I</div>
+        <div class="dim-score">Dimension 1 &middot; /20</div>
+        <div class="dim-title">Digital Infrastructure</div>
+        <p class="dim-desc">Wi-Fi, smart classrooms, biometric entry, cameras, servers, device penetration.</p>
+      </div>
+      <div class="dim-card free">
+        <span class="dim-tag">Free Tier</span>
+        <div class="dim-icon">E</div>
+        <div class="dim-score">Dimension 2 &middot; /20</div>
+        <div class="dim-title">Student Experience</div>
+        <p class="dim-desc">Admissions, mobile app, fee payments, grievance handling, parent visibility.</p>
+      </div>
+      <div class="dim-card free">
+        <span class="dim-tag">Free Tier</span>
+        <div class="dim-icon">A</div>
+        <div class="dim-score">Dimension 3 &middot; /20</div>
+        <div class="dim-title">Automation &amp; RPA</div>
+        <p class="dim-desc">Approvals, workflow tools, Excel dependency, integrations, process bots.</p>
+      </div>
+      <div class="dim-card free">
+        <span class="dim-tag">Free Tier</span>
+        <div class="dim-icon">D</div>
+        <div class="dim-score">Dimension 4 &middot; /20</div>
+        <div class="dim-title">Data Intelligence</div>
+        <p class="dim-desc">MIS dashboards, real-time reports, predictive analytics, decision culture.</p>
+      </div>
+      <div class="dim-card premium">
+        <span class="dim-tag">Premium</span>
+        <div class="dim-icon">R</div>
+        <div class="dim-score">Dimension 5 &middot; /20</div>
+        <div class="dim-title">Innovation &amp; Industry Connect</div>
+        <p class="dim-desc">Incubation, startup ecosystem, MoUs, placements, internships. NAAC/NBA-aligned.</p>
+      </div>
+      <div class="dim-card premium">
+        <span class="dim-tag">Premium</span>
+        <div class="dim-icon">S</div>
+        <div class="dim-score">Dimension 6 &middot; /20</div>
+        <div class="dim-title">Sustainability &amp; Future Readiness</div>
+        <p class="dim-desc">Paperless operations, green initiatives, smart security, emergency systems.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BEFORE / AFTER -->
+  <section class="story-section">
+    <div class="story-inner">
+      <p class="section-kicker">Transformation Storyboard</p>
+      <h2 class="section-heading">From traditional campus &rarr; Smart Campus</h2>
+      <p class="section-intro">A preview of what changes when INDRIYA findings are implemented through UniRP. Every statistic is grounded in Marwadi University&apos;s own digitisation journey.</p>
+      <div class="story-grid">
+
+        <div class="story-row">
+          <div class="story-title"><span class="story-num">1</span>Admissions</div>
+          <div class="story-before">
+            <div class="story-label">Before</div>
+            <div class="story-heading">Paper-first admissions</div>
+            <ul class="story-points"><li>Manual forms and data entry</li><li>Long queues at counters</li><li>No applicant visibility</li><li>Slow conversion pipeline</li></ul>
+          </div>
+          <div class="story-arrow"><div class="story-arrow-inner">&rarr;</div></div>
+          <div class="story-after">
+            <div class="story-label">After (with UniRP)</div>
+            <div class="story-heading">Online self-service admissions</div>
+            <ul class="story-points"><li>Online applications with document upload</li><li>Real-time status tracking</li><li>Automated fee collection and receipts</li><li>40&ndash;60% faster conversion</li></ul>
+          </div>
+          <div class="story-impact"><strong>Impact:</strong> Faster admissions, better applicant experience, higher conversion.</div>
+        </div>
+
+        <div class="story-row">
+          <div class="story-title"><span class="story-num">2</span>Administration &amp; Approvals</div>
+          <div class="story-before">
+            <div class="story-label">Before</div>
+            <div class="story-heading">File movement &amp; signatures</div>
+            <ul class="story-points"><li>Paper approvals across desks</li><li>Dependency on specific staff</li><li>No audit trail</li><li>Frequent approval delays</li></ul>
+          </div>
+          <div class="story-arrow"><div class="story-arrow-inner">&rarr;</div></div>
+          <div class="story-after">
+            <div class="story-label">After (with UniRP)</div>
+            <div class="story-heading">Digital workflows</div>
+            <ul class="story-points"><li>Mobile-first approvals</li><li>Auto-escalation &amp; SLAs</li><li>Transparent tracking</li><li>~70% faster turnaround</li></ul>
+          </div>
+          <div class="story-impact"><strong>Impact:</strong> Faster, transparent, error-free approvals across the institution.</div>
+        </div>
+
+        <div class="story-row">
+          <div class="story-title"><span class="story-num">3</span>Student Experience</div>
+          <div class="story-before">
+            <div class="story-label">Before</div>
+            <div class="story-heading">Physical queues &amp; calls</div>
+            <ul class="story-points"><li>Visit office for every request</li><li>No visibility to parents</li><li>Communication delays</li></ul>
+          </div>
+          <div class="story-arrow"><div class="story-arrow-inner">&rarr;</div></div>
+          <div class="story-after">
+            <div class="story-label">After (with UniRP)</div>
+            <div class="story-heading">Mobile app &amp; self-service</div>
+            <ul class="story-points"><li>Unified student &amp; parent app</li><li>Instant updates &amp; payments</li><li>Fewer support tickets</li></ul>
+          </div>
+          <div class="story-impact"><strong>Impact:</strong> Happier students, fewer complaints, empowered parents.</div>
+        </div>
+
+        <div class="story-row">
+          <div class="story-title"><span class="story-num">4</span>Data &amp; Decision Making</div>
+          <div class="story-before">
+            <div class="story-label">Before</div>
+            <div class="story-heading">Excel-based MIS</div>
+            <ul class="story-points"><li>Reports take days to compile</li><li>Stale data by the time it reaches leadership</li><li>Guess-based decisions</li></ul>
+          </div>
+          <div class="story-arrow"><div class="story-arrow-inner">&rarr;</div></div>
+          <div class="story-after">
+            <div class="story-label">After (with UniRP)</div>
+            <div class="story-heading">Real-time dashboards</div>
+            <ul class="story-points"><li>Live KPIs for VC &amp; registrar</li><li>Predictive academic analytics</li><li>Faster, confident decisions</li></ul>
+          </div>
+          <div class="story-impact"><strong>Impact:</strong> Data-driven leadership &mdash; decisions grounded in real numbers.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- BFI LOCKUP -->
+  <div class="bfi-lockup">
+    <div class="bfi-card">
+      <img src="assets/bfi-mcg-lockup.jpg" alt="Bloomfield Innovations and Marwadi Chandarana Group">
+      <div class="bfi-text">
+        <strong>A Bloomfield Innovations programme</strong>
+        INDRIYA is delivered in partnership with Marwadi University and the Marwadi Chandarana Group &mdash; drawing on their own benchmark Smart Campus journey to guide peer institutions.
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin:48px 0 12px;">
+    <button class="btn-hero primary" onclick="startAudit()">Begin your INDRIYA audit &rarr;</button>
+  </div>
+
+</div><!-- /landing -->
+
+<!-- ─── PROGRESS ──────────────────────────────────────── -->
+<div class="progress-bar-wrap" id="progWrap">
+  <div class="progress-inner">
+    <div class="step-indicators" id="stepIndicators"></div>
+  </div>
+</div>
+
+<!-- ─── AUDIT ────────────────────────────────────────── -->
+<main class="audit-wrap" id="auditWrap">
+
+  <!-- STEP 0: Institution + auditor -->
+  <section class="section-card" id="sec0">
+    <header class="section-head">
+      <div class="section-head-inner">
+        <span class="section-tag">Step 1 &middot; Context</span>
+        <h2 class="section-title">Institution &amp; Auditor</h2>
+        <p class="section-sub">Tell us where this audit is being conducted and who is responsible for it. We use this to personalise your INDRIYA report and to group photo evidence by institution.</p>
+      </div>
+    </header>
+    <div class="section-body">
+      <div class="form-row single">
+        <div class="field-group" id="fg-iname"><label class="field-label">Institution name <span>*</span></label><input class="field-input" id="iName" placeholder="e.g. ABC University, Rajkot"><div class="error-msg">Institution name is required.</div></div>
+      </div>
+      <div class="form-row">
+        <div class="field-group" id="fg-itype"><label class="field-label">Institution type <span>*</span></label>
+          <select class="field-input" id="iType">
+            <option value="">Select type</option>
+            <option>University</option><option>Autonomous College</option><option>Engineering College</option><option>Management Institute</option><option>Medical / Health Sciences</option><option>Multi-disciplinary Campus</option><option>Polytechnic / ITI</option><option>Other</option>
+          </select><div class="error-msg">Required</div>
+        </div>
+        <div class="field-group" id="fg-students"><label class="field-label">Student strength <span>*</span></label>
+          <select class="field-input" id="students">
+            <option value="">Select range</option>
+            <option>Below 1,000</option><option>1,000 – 3,000</option><option>3,000 – 7,000</option><option>7,000 – 15,000</option><option>15,000 – 30,000</option><option>Above 30,000</option>
+          </select><div class="error-msg">Required</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group"><label class="field-label">Programs offered</label><input class="field-input" id="programs" placeholder="e.g. 22" type="number" min="1"></div>
+        <div class="field-group"><label class="field-label">City / Location</label><input class="field-input" id="city" placeholder="e.g. Rajkot, Gujarat"></div>
+      </div>
+      <div class="form-row">
+        <div class="field-group" id="fg-audName"><label class="field-label">Your name <span>*</span></label><input class="field-input" id="audName" placeholder="Full name"><div class="error-msg">Required</div></div>
+        <div class="field-group" id="fg-audRole"><label class="field-label">Your role <span>*</span></label>
+          <select class="field-input" id="audRole">
+            <option value="">Select role</option>
+            <option>Vice Chancellor</option><option>Registrar</option><option>Director / Principal</option><option>Dean</option><option>IT Head</option><option>Admissions Head</option><option>Finance Officer</option><option>NAAC / Accreditation Coordinator</option><option>UniRP Consultant</option><option>Other Leadership</option>
+          </select><div class="error-msg">Required</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field-group" id="fg-audEmail"><label class="field-label">Email <span>*</span></label><input class="field-input" id="audEmail" type="email" placeholder="you@institution.edu"><div class="error-msg">A valid email is required</div></div>
+        <div class="field-group"><label class="field-label">Phone</label><input class="field-input" id="audPhone" type="tel" placeholder="+91 98765 43210"></div>
+      </div>
+      <div class="form-row single">
+        <div class="field-group"><label class="field-label">Audit context / focus</label><textarea class="field-input" id="audContext" rows="2" placeholder="e.g. Self-assessment before NAAC cycle; preparing Smart Campus blueprint."></textarea></div>
+      </div>
+      <div class="nav-buttons">
+        <button class="btn-back" onclick="backToLanding()">&larr; Back to overview</button>
+        <span class="step-counter">Step 1 of 7</span>
+        <button class="btn-next" onclick="next(0)">Start audit &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEPS 1-4: FREE TIER -->
+  <section class="section-card" id="sec1"></section>
+  <section class="section-card" id="sec2"></section>
+  <section class="section-card" id="sec3"></section>
+  <section class="section-card" id="sec4"></section>
+
+  <!-- STEP 5: CHOICE GATE (free report vs continue to premium) -->
+  <section class="gate-card" id="secGate">
+    <header class="gate-head">
+      <div class="gate-head-inner">
+        <div class="gate-icon" aria-hidden="true">&#127919;</div>
+        <h2 class="gate-title">Technical audit complete. What next?</h2>
+        <p class="gate-sub">You&apos;ve finished the four Technical &amp; ERP dimensions. You can either receive your free report now, or continue into the two NAAC/NBA-aligned dimensions and get a complete Smart Campus audit.</p>
+      </div>
+    </header>
+    <div class="gate-body">
+      <div class="choice-grid" id="choiceGrid">
+
+        <article class="choice-card free">
+          <div class="choice-tag">Free tier</div>
+          <div class="choice-title">Generate my free report</div>
+          <div class="choice-sub">Receive a branded PDF of Dimensions 1&ndash;4 with all your observations and photo evidence embedded.</div>
+          <ul class="choice-points">
+            <li>Scorecard on 4 of 6 dimensions (/80)</li>
+            <li>Radar chart &amp; maturity indicator</li>
+            <li>Photo evidence annex</li>
+            <li>Roadmap from Bloomfield Innovations</li>
+          </ul>
+          <button class="btn-choice outline" onclick="chooseFreeReport()">Get my free report &rarr;</button>
+        </article>
+
+        <article class="choice-card premium">
+          <div class="choice-tag">Recommended</div>
+          <div class="choice-title">Continue to premium assessment</div>
+          <div class="choice-sub">Add the two accreditation-grade dimensions &mdash; Innovation &amp; Industry, Sustainability &amp; Future Readiness &mdash; and get a complete INDRIYA audit.</div>
+          <ul class="choice-points">
+            <li>Full /120 INDRIYA Index</li>
+            <li>NAAC/NBA aligned scoring</li>
+            <li>Priority consultant follow-up within 48 hrs</li>
+            <li>Same report &mdash; no re-registration needed</li>
+          </ul>
+          <button class="btn-choice solid" onclick="continueToPremium()">Continue to premium &rarr;</button>
+        </article>
+
+      </div>
+
+      <p class="choice-note">Your institution and auditor details from Step&nbsp;1 are already saved. Whichever path you choose, your record is kept as a single INDRIYA submission &mdash; premium-requested status is simply flagged so leadership knows whom to prioritise.</p>
+
+      <div class="nav-buttons" style="margin-top:18px;">
+        <button class="btn-back" onclick="prev(5)">&larr; Back to Dimension 4</button>
+        <span class="step-counter">Step 5 of 8 &middot; choose your path</span>
+        <span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEPS 6-7: PREMIUM -->
+  <section class="section-card" id="sec5"></section>
+  <section class="section-card" id="sec6"></section>
+
+  <!-- RESULTS -->
+  <section class="results-card" id="secResults">
+    <header class="results-head">
+      <div class="results-head-inner">
+        <h2>INDRIYA Scorecard</h2>
+        <p class="r-sub">Institutional Digital Readiness &amp; Intelligent Yield Assessment</p>
+        <div class="score-circle">
+          <div class="score-number" id="scoreNum">--</div>
+          <div class="score-total">out of <span id="scoreMax">120</span></div>
+          <div class="score-lbl">INDRIYA Index</div>
+        </div>
+        <div class="score-cat" id="scoreCat">Calculating&hellip;</div>
+      </div>
+    </header>
+    <div class="results-body">
+
+      <div class="success-box" id="successBox">
+        <p id="successMsg">&#10004; Your INDRIYA audit has been recorded. A senior UniRP consultant will review your evidence and contact you within <strong>24&ndash;48 hours</strong> with a validated Smart Campus roadmap.</p>
+      </div>
+
+      <div class="radar-wrap">
+        <div class="radar-title">Your INDRIYA profile &mdash; 6 dimensions</div>
+        <div class="radar-canvas-wrap"><canvas id="radar"></canvas></div>
+      </div>
+
+      <div class="scorecard-grid" id="scorecardGrid"></div>
+
+      <div class="maturity-section">
+        <div class="maturity-head">Where you stand &mdash; Smart Campus maturity</div>
+        <div class="level-track" id="levelTrack"></div>
+        <div class="level-caption" id="levelCaption"></div>
+      </div>
+
+      <div class="roadmap">
+        <h3>Your transformation roadmap</h3>
+        <div id="roadmapContent"></div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-action green" onclick="printReport()">&#128438;&nbsp;Download PDF report</button>
+        <a class="btn-action gold" href="index.html#roi">&#128200;&nbsp;Explore UniRP ROI</a>
+        <button class="btn-action outline" onclick="location.reload()">&#8635;&nbsp;New audit</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ─── BFI FOOTER LOCKUP ─────────────────────────────── -->
+<footer class="site-footer">
+  <p>INDRIYA Smart Campus Audit &middot; A <strong style="color:white;">Bloomfield Innovations</strong> programme &middot; Powered by UniRP<br>
+  <a href="https://bloomfieldinnovations.in" target="_blank" rel="noopener">bloomfieldinnovations.in</a> &middot; &copy; 2026 Bloomfield Innovations. All rights reserved.</p>
+</footer>
+
+<!-- LOADING OVERLAY -->
+<div class="overlay" id="overlay" role="status" aria-live="polite">
+  <div class="overlay-box">
+    <div class="spinner"></div>
+    <h3 id="ovTitle">Generating your INDRIYA report</h3>
+    <p id="ovMsg">Analysing observations, photos and ratings&hellip;</p>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="printArea"></div>
+
+<script>
+// ==========================================================
+// INDRIYA Audit – Data model
+// ==========================================================
+const RATING_LABELS=[
+  {stars:1,label:'Not Available',pts:0,desc:'Not implemented / absent'},
+  {stars:2,label:'Basic',pts:1,desc:'Early stage, manual'},
+  {stars:3,label:'Developing',pts:2,desc:'Partially in place'},
+  {stars:4,label:'Advanced',pts:3,desc:'Well implemented'},
+  {stars:5,label:'World-Class',pts:4,desc:'Benchmark, fully automated'}
+];
+
+const DIMENSIONS=[
+  {key:'I',name:'Digital Infrastructure',icon:'I',tag:'Free Tier',tagClass:'free',tier:'free',
+    sub:'Capture the physical and digital backbone of your campus &mdash; connectivity, classrooms, attendance, cameras, servers, device penetration.',
+    items:[
+      {id:'I1',title:'Campus-wide Wi-Fi coverage',hint:'Are all academic and residential zones covered reliably? Any dead zones?'},
+      {id:'I2',title:'Smart classrooms (% of total)',hint:'Projectors, interactive displays, recording capability, lecture capture.'},
+      {id:'I3',title:'Biometric / RFID attendance &amp; access',hint:'For students, faculty and staff. Integrated with HR / academic systems?'},
+      {id:'I4',title:'CCTV &amp; AI surveillance coverage',hint:'Analytics-enabled cameras, centralised monitoring, ANPR at gates.'},
+      {id:'I5',title:'Server / cloud readiness',hint:'On-prem, hybrid or cloud-native? Redundancy and uptime SLAs.'}
+    ]},
+  {key:'E',name:'Student Experience',icon:'E',tag:'Free Tier',tagClass:'free',tier:'free',
+    sub:'Trace the end-to-end journey of a student and parent &mdash; admissions, communication, payments, support, visibility.',
+    items:[
+      {id:'E1',title:'Online admissions journey',hint:'From enquiry to fee payment &mdash; is it fully digital with document upload and real-time status?'},
+      {id:'E2',title:'Student mobile app',hint:'Attendance, timetable, assignments, results, fees, grievances in one place.'},
+      {id:'E3',title:'Digital fee payments &amp; receipts',hint:'Multi-channel, instant reconciliation, auto-receipts to parents.'},
+      {id:'E4',title:'Grievance / helpdesk system',hint:'Ticketed, tracked, with SLA dashboards; not just email.'},
+      {id:'E5',title:'Parent visibility &amp; communication',hint:'Dedicated parent portal / app with real-time academic and fee status.'}
+    ]},
+  {key:'A',name:'Automation &amp; RPA Maturity',icon:'A',tag:'Free Tier',tagClass:'free',tier:'free',
+    sub:'Assess how much of your administrative workload is truly automated versus hidden behind email and spreadsheets.',
+    items:[
+      {id:'A1',title:'Digital approval workflows',hint:'Leave, purchase, academic approvals &mdash; signed on mobile with audit trail?'},
+      {id:'A2',title:'Reduction in Excel / manual work',hint:'How many daily operations still rely on spreadsheets?'},
+      {id:'A3',title:'System integrations',hint:'Are admissions, finance, HR and academic systems truly talking to each other?'},
+      {id:'A4',title:'Bots / RPA for repetitive tasks',hint:'Scheduled bots, notification engines, auto-generated reports.'},
+      {id:'A5',title:'Self-service portals for staff &amp; students',hint:'Most common requests handled without admin intervention.'}
+    ]},
+  {key:'D',name:'Data Intelligence',icon:'D',tag:'Free Tier',tagClass:'free',tier:'free',
+    sub:'Evaluate the quality, timeliness and impact of data in leadership decision-making.',
+    items:[
+      {id:'D1',title:'Real-time leadership dashboards',hint:'VC / Registrar can see live KPIs without waiting for reports.'},
+      {id:'D2',title:'MIS report frequency',hint:'Daily real-time, weekly, or manual on-demand compilation?'},
+      {id:'D3',title:'Data-driven decision culture',hint:'Strategy meetings anchored on data &mdash; not gut feel.'},
+      {id:'D4',title:'Predictive analytics in use',hint:'Dropout prediction, placement likelihood, NAAC readiness scoring.'},
+      {id:'D5',title:'Centralised, governed data',hint:'Single source of truth with clear ownership and access policies.'}
+    ]},
+  {key:'R',name:'Innovation &amp; Industry Connect',icon:'R',tag:'Premium &middot; NAAC/NBA',tagClass:'premium',tier:'premium',
+    sub:'Measure the strength of your research, innovation, industry engagement and placement ecosystem &mdash; directly mapped to NAAC/NBA criteria.',
+    items:[
+      {id:'R1',title:'Active incubation centre &amp; startups',hint:'Physical space, funding linkages, number of active startups / patents.'},
+      {id:'R2',title:'Industry MoUs converted to activity',hint:'MoUs that translate into projects, internships, guest sessions.'},
+      {id:'R3',title:'Research &amp; publication tracking',hint:'Digital tracking of publications, citations, funded projects.'},
+      {id:'R4',title:'Placement tracking &amp; analytics',hint:'Real-time placement dashboards, offer analytics, company funnel.'},
+      {id:'R5',title:'Internship / apprenticeship programme',hint:'Structured internship cell with tracking, mentorship and credit.'}
+    ]},
+  {key:'S',name:'Sustainability &amp; Future Readiness',icon:'S',tag:'Premium &middot; NAAC/NBA',tagClass:'premium',tier:'premium',
+    sub:'Assess the resilience, green credentials and long-term readiness of your campus &mdash; part of every serious accreditation review.',
+    items:[
+      {id:'S1',title:'Paperless operations',hint:'Admissions, finance, academic records, HR &mdash; substantially digital.'},
+      {id:'S2',title:'Green initiatives (solar, waste, water)',hint:'Measured and reported, not one-off drives.'},
+      {id:'S3',title:'Smart parking &amp; security',hint:'ANPR, visitor workflow, integrated CCTV, panic alerts.'},
+      {id:'S4',title:'Emergency &amp; risk preparedness',hint:'Drills, SOPs, mass notification tools, integrated response.'},
+      {id:'S5',title:'Digital compliance tracking',hint:'NAAC / NBA / UGC / AICTE requirements tracked digitally with owners.'}
+    ]}
+];
+
+const MATURITY=[
+  {key:'critical',label:'Critical Risk',color:'#c0392b',max:40,desc:'Significant digital gaps across most dimensions. Immediate intervention required to stabilise core operations.'},
+  {key:'emerging',label:'Emerging',color:'#d97c2b',max:60,desc:'Basic digital systems in place but fragmented. Inconsistent data and heavy dependency on manual workarounds.'},
+  {key:'developing',label:'Developing',color:'#c9a84c',max:80,desc:'Structured digital backbone exists. Integration, automation and data culture are the next frontier.'},
+  {key:'advanced',label:'Advanced',color:'#2d8f6f',max:100,desc:'Most processes are automated. Leadership decisions are data-backed. Ready for AI and predictive programmes.'},
+  {key:'smart',label:'Smart Campus',color:'#0a6852',max:120,desc:'Benchmark-grade institution &mdash; integrated, intelligent, paperless, and resilient. Ready to lead peer ecosystems.'}
+];
+
+// ==========================================================
+// State
+// ==========================================================
+const STEPS=['sec0','sec1','sec2','sec3','sec4','secGate','sec5','sec6','secResults'];
+const STEP_LABELS=['Context','Infrastructure','Experience','Automation','Data','Choose path','Innovation','Sustainability','Results'];
+const STEP_TIERS=['free','free','free','free','free','free','premium','premium','results'];
+let currentStep=0;
+let unlocked=false; // true once user chose premium path
+const ratings={}; // { I1: 3, I2: 4, ... } (points 0..4)
+const remarks={}; // { I1: '...' }
+const photos={};  // { I1: [{dataUrl,name,desc}] }
+const ctx={};
+let lastPdfBlob=null; // filled by submitAudit for the Download button
+
+// ==========================================================
+// Progress bar
+// ==========================================================
+function renderProgress(){
+  const wrap=document.getElementById('stepIndicators');
+  wrap.innerHTML='';
+  STEP_LABELS.forEach((lbl,i)=>{
+    const visible=(i<=4||i===5||unlocked||i===8);
+    const isLocked=(i>=6&&i<=7&&!unlocked);
+    const item=document.createElement('div');
+    item.className='step-item';
+    if(i===currentStep)item.classList.add('active');
+    if(i<currentStep)item.classList.add('completed');
+    if(isLocked)item.classList.add('locked');
+    item.innerHTML=`<div class="step-dot">${isLocked?'&#128274;':(i+1)}</div><div class="step-label">${lbl}</div>`;
+    item.onclick=()=>goTo(i);
+    wrap.appendChild(item);
+    if(i<STEP_LABELS.length-1){
+      const c=document.createElement('div');
+      c.className='step-connector'+(i<currentStep?' done':'');
+      wrap.appendChild(c);
+    }
+  });
+}
+
+// ==========================================================
+// Render audit sections (1-4 free, 5-6 premium)
+// ==========================================================
+function renderAuditSections(){
+  // sec1..sec6 map to DIMENSIONS[0..5]. Step indices: 1,2,3,4,6,7.
+  const map=[
+    {stepIdx:1,secId:'sec1',dim:DIMENSIONS[0]},
+    {stepIdx:2,secId:'sec2',dim:DIMENSIONS[1]},
+    {stepIdx:3,secId:'sec3',dim:DIMENSIONS[2]},
+    {stepIdx:4,secId:'sec4',dim:DIMENSIONS[3]},
+    {stepIdx:6,secId:'sec5',dim:DIMENSIONS[4]},
+    {stepIdx:7,secId:'sec6',dim:DIMENSIONS[5]}
+  ];
+  map.forEach((m,idx)=>{
+    const d=m.dim;
+    const el=document.getElementById(m.secId);
+    const itemHtml=d.items.map((it,i)=>renderItem(d.key,it,i+1)).join('');
+    const isLast=m.stepIdx===7;
+    const nextLabel=(m.stepIdx===4)?'Choose your path &rarr;':(isLast?'Generate INDRIYA report &#10024;':'Continue &rarr;');
+    const nextFn=(m.stepIdx===4)?`next(4)`:(isLast?`submitAudit()`:`next(${m.stepIdx})`);
+    const submitClass=isLast?'btn-submit':'btn-next';
+    el.innerHTML=`
+      <header class="section-head">
+        <div class="section-head-inner">
+          <span class="section-tag">${d.tag}</span>
+          <h2 class="section-title">Dimension ${idx+1} &middot; ${d.name}</h2>
+          <p class="section-sub">${d.sub}</p>
+        </div>
+      </header>
+      <div class="section-body">
+        ${itemHtml}
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="prev(${m.stepIdx})">&larr; Back</button>
+          <span class="step-counter">Dimension ${idx+1} of 6 &middot; /20 points</span>
+          <button class="${submitClass}" onclick="${nextFn}">${nextLabel}</button>
+        </div>
+      </div>`;
+  });
+}
+
+function renderItem(dimKey,item,num){
+  const optHtml=RATING_LABELS.map(r=>`
+    <div class="rate-opt" data-item="${item.id}" data-pts="${r.pts}" onclick="pickRating('${item.id}',${r.pts},this)">
+      <div class="rate-stars">${'★'.repeat(r.stars)}<span class="dim">${'★'.repeat(5-r.stars)}</span></div>
+      <div class="rate-lbl">${r.label}</div>
+      <div class="rate-pts">${r.pts} pt${r.pts===1?'':'s'}</div>
+    </div>`).join('');
+  return `
+  <div class="audit-item" id="ai-${item.id}">
+    <div class="ai-head">
+      <div class="ai-num">${num}</div>
+      <div>
+        <div class="ai-title">${item.title}</div>
+        <div class="ai-hint">${item.hint}</div>
+      </div>
+    </div>
+    <div class="rate-row" role="radiogroup" aria-label="Rate ${item.title}">
+      <div class="rate-label">On-ground rating <span style="color:#e05252">*</span></div>
+      <div class="rate-options">${optHtml}</div>
+    </div>
+    <div class="q-err-msg">Please select a rating based on what you observed on-ground.</div>
+    <div class="remark-row">
+      <div class="remark-label">Remarks / observation</div>
+      <textarea class="remark-input" placeholder="What did you see or hear on-ground? e.g. 3 of 12 classrooms have interactive displays; rest have projectors only." oninput="remarks['${item.id}']=this.value"></textarea>
+    </div>
+    <div class="photo-row">
+      <div class="photo-label">Photo evidence <span class="opt-tag">Strongly recommended</span></div>
+      <label class="photo-drop">
+        <input type="file" accept="image/*" multiple onchange="handlePhotos(event,'${item.id}')">
+        <div class="photo-drop-inner">
+          <div class="photo-drop-icon">&#128247;</div>
+          <div class="photo-drop-text"><strong>Click to capture / upload photos</strong> of ${item.title.replace(/<[^>]*>/g,'').toLowerCase()}.</div>
+        </div>
+      </label>
+      <div class="photo-previews" id="prev-${item.id}"></div>
+      <div class="photo-warn">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
+    </div>
+  </div>`;
+}
+
+function pickRating(id,pts,el){
+  ratings[id]=pts;
+  el.parentElement.querySelectorAll('.rate-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  const item=document.getElementById('ai-'+id);
+  if(item)item.classList.remove('q-err');
+}
+
+function handlePhotos(e,id){
+  const files=Array.from(e.target.files||[]);
+  if(!photos[id])photos[id]=[];
+  files.forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      const entry={name:f.name,dataUrl:ev.target.result,desc:''};
+      photos[id].push(entry);
+      renderPhotoPreviews(id);
+    };
+    reader.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+
+function renderPhotoPreviews(id){
+  const wrap=document.getElementById('prev-'+id);
+  if(!wrap)return;
+  wrap.innerHTML=(photos[id]||[]).map((p,i)=>`
+    <div class="photo-thumb">
+      <img src="${p.dataUrl}" alt="Evidence photo ${i+1} for ${id}">
+      <button class="pt-del" type="button" aria-label="Remove photo" onclick="delPhoto('${id}',${i})">&times;</button>
+      <textarea class="pt-desc" placeholder="Describe this photo (e.g. Main library RFID gate at entrance)." oninput="photos['${id}'][${i}].desc=this.value">${p.desc||''}</textarea>
+    </div>`).join('');
+}
+
+function delPhoto(id,i){
+  if(!photos[id])return;
+  photos[id].splice(i,1);
+  renderPhotoPreviews(id);
+}
+
+// ==========================================================
+// Navigation
+// ==========================================================
+function startAudit(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('progWrap').classList.add('show');
+  document.getElementById('auditWrap').classList.add('show');
+  currentStep=0;
+  showStep(0);
+  renderProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function backToLanding(){
+  document.getElementById('landing').style.display='';
+  document.getElementById('progWrap').classList.remove('show');
+  document.getElementById('auditWrap').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showStep(i){
+  STEPS.forEach((id,idx)=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.classList.toggle('active',idx===i);
+  });
+  currentStep=i;
+  renderProgress();
+  window.scrollTo({top:document.getElementById('progWrap').offsetTop-10,behavior:'smooth'});
+}
+
+function goTo(i){
+  if(i>currentStep)return; // no skipping ahead
+  if((i===6||i===7)&&!unlocked)return;
+  showStep(i);
+}
+
+function next(stepIdx){
+  if(stepIdx===0){
+    if(!validateContext())return;
+    captureContext();
+    showStep(1);
+    return;
+  }
+  // Free dimension steps: 1..4 -> require all ratings
+  if(stepIdx>=1&&stepIdx<=4){
+    const dim=DIMENSIONS[stepIdx-1];
+    if(!validateDimension(dim))return;
+    if(stepIdx===4){showStep(5);return;} // go to gate
+    showStep(stepIdx+1);
+    return;
+  }
+  // Premium steps after unlock: 6..7
+  if(stepIdx===6){
+    const dim=DIMENSIONS[4];
+    if(!validateDimension(dim))return;
+    showStep(7);
+    return;
+  }
+}
+
+function prev(stepIdx){
+  const target=stepIdx-1;
+  if(target<0)return;
+  showStep(target);
+}
+
+// ==========================================================
+// Validation
+// ==========================================================
+function validateContext(){
+  let ok=true;
+  const req=[['iName','fg-iname'],['iType','fg-itype'],['students','fg-students'],['audName','fg-audName'],['audRole','fg-audRole']];
+  req.forEach(([id,fg])=>{
+    const v=document.getElementById(id).value.trim();
+    const g=document.getElementById(fg);
+    if(!v){g.classList.add('error','q-err');ok=false;}else{g.classList.remove('error','q-err');}
+  });
+  const em=document.getElementById('audEmail').value.trim();
+  const fg=document.getElementById('fg-audEmail');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){fg.classList.add('error','q-err');ok=false;}else{fg.classList.remove('error','q-err');}
+  return ok;
+}
+function captureContext(){
+  ctx.institution=document.getElementById('iName').value.trim();
+  ctx.iType=document.getElementById('iType').value;
+  ctx.students=document.getElementById('students').value;
+  ctx.programs=document.getElementById('programs').value;
+  ctx.city=document.getElementById('city').value.trim();
+  ctx.audName=document.getElementById('audName').value.trim();
+  ctx.audRole=document.getElementById('audRole').value;
+  ctx.audEmail=document.getElementById('audEmail').value.trim();
+  ctx.audPhone=document.getElementById('audPhone').value.trim();
+  ctx.audContext=document.getElementById('audContext').value.trim();
+  ctx.startedAt=new Date().toISOString();
+}
+
+function validateDimension(dim){
+  let ok=true;let firstBad=null;
+  dim.items.forEach(it=>{
+    if(ratings[it.id]===undefined){
+      const el=document.getElementById('ai-'+it.id);
+      if(el){el.classList.add('q-err');if(!firstBad)firstBad=el;}
+      ok=false;
+    }
+  });
+  if(firstBad)firstBad.scrollIntoView({behavior:'smooth',block:'center'});
+  return ok;
+}
+
+// Step 1 (context) already captured name, email, institution — no re-registration.
+// We only flag the record with premium_requested at submit time.
+function chooseFreeReport(){
+  unlocked=false;
+  submitAudit();
+}
+function continueToPremium(){
+  unlocked=true;
+  renderProgress();
+  showStep(6); // jump to Dimension 5 (Innovation)
+}
+
+// ==========================================================
+// Scoring
+// ==========================================================
+function computeScores(){
+  const byDim={};let total=0;let max=0;
+  DIMENSIONS.forEach(d=>{
+    if(d.tier==='premium'&&!unlocked){byDim[d.key]={score:null,max:20,name:d.name,tier:d.tier};return;}
+    let s=0;
+    d.items.forEach(it=>{s+=(ratings[it.id]||0);});
+    byDim[d.key]={score:s,max:20,name:d.name,tier:d.tier};
+    total+=s;max+=20;
+  });
+  return {byDim,total,max};
+}
+
+function maturityFor(total){
+  // 120-point scale; if only 4 dims (80), we scale proportionally for label only
+  for(const m of MATURITY){if(total<=m.max)return m;}
+  return MATURITY[MATURITY.length-1];
+}
+
+// ==========================================================
+// Submit & render results
+// ==========================================================
+async function submitAudit(){
+  // If the user chose the premium path, Dim 6 must be fully rated before submission.
+  if(unlocked && !validateDimension(DIMENSIONS[5])) return;
+
+  setOverlay('Generating your INDRIYA report','Building the PDF with observations &amp; photos embedded…');
+  document.getElementById('overlay').classList.add('active');
+
+  const results=computeScores();
+
+  // 1. Render on-screen results + print-area HTML (used as source for PDF)
+  renderResults(results);
+
+  // 2. Generate PDF blob from the print area (photos embedded via data URLs)
+  let pdfBase64='';
+  lastPdfBlob=null;
+  try{
+    setOverlay('Generating your INDRIYA report','Rendering pages &amp; embedding photo evidence…');
+    lastPdfBlob=await generatePdfBlob();
+    pdfBase64=await blobToBase64(lastPdfBlob);
+  }catch(err){
+    console.log('[v0] PDF generation failed:',err && err.message);
+  }
+
+  // 3. Submit one record to the sheet (includes the PDF — saved to Drive server-side)
+  setOverlay('Saving your audit','Uploading report to Drive and recording submission…');
+  try{
+    await pushToSheet(buildPayload(results,pdfBase64));
+  }catch(e){
+    console.log('[v0] Sheet submit error:',e && e.message);
+  }
+
+  showStep(8);
+  document.getElementById('overlay').classList.remove('active');
+}
+
+function setOverlay(title,msg){
+  const t=document.getElementById('ovTitle'); if(t) t.textContent=title;
+  const m=document.getElementById('ovMsg');  if(m) m.innerHTML=msg;
+}
+
+function buildPayload(results,pdfBase64){
+  return {
+    type:'INDRIYA_AUDIT',
+    timestamp:new Date().toISOString(),
+    context:ctx,
+    ratings,
+    remarks,
+    scores:{
+      byDim:Object.fromEntries(Object.entries(results.byDim).map(([k,v])=>[k,v.score])),
+      total:results.total,
+      max:results.max
+    },
+    premium_requested:unlocked===true,
+    pdf_base64:pdfBase64||'',
+    pdf_filename:pdfFilename()
+  };
+}
+
+async function pushToSheet(payload){
+  const GS_URL='https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
+  try{
+    await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  }catch(e){/* silent */}
+}
+
+// ──────────── PDF generation (html2pdf + jsPDF) ────────────
+function pdfFilename(){
+  const inst=(ctx.institution||'institution').replace(/[^\w\-]+/g,'_').substring(0,40);
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-').substring(0,19);
+  return `INDRIYA_${inst}_${stamp}.pdf`;
+}
+
+function generatePdfBlob(){
+  return new Promise((resolve,reject)=>{
+    const el=document.getElementById('printArea');
+    if(!el){reject(new Error('No print area.'));return;}
+    if(typeof html2pdf==='undefined'){reject(new Error('html2pdf not loaded.'));return;}
+
+    // Temporarily make the print area visible off-screen so html2canvas can render it.
+    const prev={display:el.style.display,position:el.style.position,left:el.style.left,top:el.style.top,width:el.style.width,background:el.style.background,zIndex:el.style.zIndex};
+    el.style.display='block';
+    el.style.position='fixed';
+    el.style.left='-10000px';
+    el.style.top='0';
+    el.style.width='780px';
+    el.style.background='#ffffff';
+    el.style.zIndex='-1';
+
+    const opt={
+      margin:[8,8,10,8],
+      filename:pdfFilename(),
+      image:{type:'jpeg',quality:0.9},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
+      pagebreak:{mode:['css','legacy'],before:'.pr-page'}
+    };
+
+    html2pdf().set(opt).from(el).toPdf().get('pdf').then(pdf=>{
+      const blob=pdf.output('blob');
+      Object.assign(el.style,prev);
+      resolve(blob);
+    }).catch(err=>{
+      Object.assign(el.style,prev);
+      reject(err);
+    });
+  });
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>{
+      const s=String(r.result||'');
+      const idx=s.indexOf(',');
+      resolve(idx>=0?s.substring(idx+1):s);
+    };
+    r.onerror=()=>reject(r.error||new Error('FileReader error'));
+    r.readAsDataURL(blob);
+  });
+}
+
+function renderResults(r){
+  document.getElementById('scoreNum').textContent=r.total;
+  document.getElementById('scoreMax').textContent=r.max;
+
+  // Tier-aware success message
+  const msg=document.getElementById('successMsg');
+  if(msg){
+    if(unlocked){
+      msg.innerHTML='&#10004; Premium INDRIYA audit recorded. Your submission has been flagged for <strong>priority consultant review</strong> &mdash; our senior team will reach out within <strong>24&ndash;48 hours</strong>.';
+    }else{
+      msg.innerHTML='&#10004; Free-tier INDRIYA audit recorded. Your PDF report has been generated and is available for download below. If you&apos;d like the full /120 audit covering NAAC/NBA dimensions, reply to the confirmation email or contact us at <strong>bloomfieldinnovations.in</strong>.';
+    }
+  }
+
+  // Maturity (scaled against what is actually evaluated)
+  const pct=r.total/r.max;
+  const scaled=Math.round(pct*120);
+  const lv=maturityFor(scaled);
+  const cat=document.getElementById('scoreCat');
+  cat.textContent=lv.label;
+  cat.style.background=lv.color;
+  cat.style.color='white';
+
+  // Scorecard
+  const grid=document.getElementById('scorecardGrid');
+  grid.innerHTML=DIMENSIONS.map((d,i)=>{
+    const v=r.byDim[d.key];
+    const locked=(v.score===null);
+    const score=locked?0:v.score;
+    const pct=Math.round(score/20*100);
+    return `<div class="sc-card ${locked?'locked':''}">
+      <div class="sc-top"><div class="sc-icon">${d.icon}</div><span class="sc-tag">${locked?'Locked':('Dim '+(i+1))}</span></div>
+      <div class="sc-name">${d.name}</div>
+      <div class="sc-val">${locked?'—':score}<span class="sc-max">${locked?'':'/20'}</span></div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${locked?0:pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // Radar
+  const ctxC=document.getElementById('radar').getContext('2d');
+  if(window.__radar)window.__radar.destroy();
+  window.__radar=new Chart(ctxC,{
+    type:'radar',
+    data:{
+      labels:DIMENSIONS.map(d=>d.name.replace(/&amp;/g,'&')),
+      datasets:[{
+        label:'Your score',
+        data:DIMENSIONS.map(d=>r.byDim[d.key].score||0),
+        backgroundColor:'rgba(10,104,82,0.18)',
+        borderColor:'#044a3d',
+        pointBackgroundColor:'#c9a84c',
+        borderWidth:2,pointRadius:4
+      },{
+        label:'Smart Campus benchmark',
+        data:DIMENSIONS.map(()=>18),
+        backgroundColor:'rgba(201,168,76,0.06)',
+        borderColor:'rgba(201,168,76,0.65)',
+        borderDash:[4,4],
+        pointRadius:0,borderWidth:1.5
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      scales:{r:{min:0,max:20,ticks:{stepSize:5,color:'#7a9590',backdropColor:'transparent',font:{size:10}},grid:{color:'#d4e8e0'},angleLines:{color:'#d4e8e0'},pointLabels:{color:'#0f1f1a',font:{size:11,family:'DM Sans'}}}},
+      plugins:{legend:{position:'bottom',labels:{font:{size:11,family:'DM Sans'},color:'#3a5248',boxWidth:12}}}
+    }
+  });
+
+  // Maturity track
+  const track=document.getElementById('levelTrack');
+  track.innerHTML=MATURITY.map((m,i)=>{
+    const active=(m.key===lv.key);
+    const past=MATURITY.findIndex(x=>x.key===lv.key)>i;
+    const future=!active&&!past;
+    return `<div class="level-step ${active?'current':(past?'past':'future')}" style="background:${active?m.color:''};color:${active?'white':'var(--tm)'};">
+      ${active?`<div class="current-marker">You are here</div>`:''}
+      <div class="ls-icon">${['&#128308;','&#128992;','&#128993;','&#128994;','&#127775;'][i]}</div>
+      <div class="ls-score">${i===0?'0-40':(i===1?'41-60':(i===2?'61-80':(i===3?'81-100':'101-120')))}</div>
+      <div class="ls-name">${m.label}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('levelCaption').innerHTML=`<p><strong>${lv.label}:</strong> ${lv.desc}</p>`;
+
+  // Roadmap
+  const weak=Object.entries(r.byDim).filter(([,v])=>v.score!==null).sort((a,b)=>a[1].score-b[1].score).slice(0,3).map(([k])=>DIMENSIONS.find(d=>d.key===k).name.replace(/&amp;/g,'&'));
+  const roadmap=[
+    {t:'0&ndash;30 days &mdash; Quick Wins',d:`Publish a Smart Campus intent from leadership. Map all current paper approvals and identify the top 5 to digitise immediately via UniRP workflows.`},
+    {t:'1&ndash;3 months &mdash; Foundation',d:`Focus on your weakest dimensions (${weak.join(', ')||'all dimensions'}) with on-site Bloomfield consulting support. Establish single source of truth in UniRP.`},
+    {t:'3&ndash;9 months &mdash; Integration',d:`Roll out mobile apps for students, faculty and parents. Integrate biometric / RFID with UniRP for attendance and access. Switch leadership to real-time dashboards.`},
+    {t:'9&ndash;18 months &mdash; Intelligence',d:`Deploy predictive analytics for dropout, placements and NAAC readiness. Automate approvals, notifications and compliance tracking via RPA bots.`},
+    {t:'18&ndash;24 months &mdash; Smart Campus',d:`Benchmark against Marwadi University, publish your own INDRIYA score trajectory, and open your playbook to the peer ecosystem.`}
+  ];
+  document.getElementById('roadmapContent').innerHTML=roadmap.map((s,i)=>`
+    <div class="roadmap-item"><div class="rd-num">${i+1}</div><div class="rd-text"><strong>${s.t}:</strong> ${s.d}</div></div>`).join('');
+
+  // Build print area
+  buildPrintArea(r,lv,roadmap);
+}
+
+// ==========================================================
+// Print / PDF
+// ==========================================================
+function buildPrintArea(r,lv,roadmap){
+  const dateStr=new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  const dimRows=DIMENSIONS.map((d,i)=>{
+    const v=r.byDim[d.key];
+    const locked=v.score===null;
+    return `<tr>
+      <td style="padding:6px 8px;font-weight:700;color:#044a3d;">${i+1}</td>
+      <td style="padding:6px 8px;">${d.name.replace(/&amp;/g,'&')}</td>
+      <td style="padding:6px 8px;font-size:10.5px;color:#7a9590;">${d.tier==='premium'?'NAAC/NBA':'Tech/ERP'}</td>
+      <td style="padding:6px 8px;text-align:center;font-weight:700;color:${locked?'#8d6f22':'#0a6852'};">${locked?'Locked':(v.score+'/20')}</td>
+    </tr>`;
+  }).join('');
+
+  const itemRows=DIMENSIONS.flatMap(d=>d.items.map((it,i)=>{
+    const pts=ratings[it.id];
+    const rem=(remarks[it.id]||'').trim();
+    const stars=(pts!==undefined)?('★'.repeat(pts+1)+'<span style="color:#d9d0b3">'+'★'.repeat(4-pts)+'</span>'):'—';
+    return `<tr>
+      <td style="padding:6px 8px;vertical-align:top;font-weight:700;color:#044a3d;white-space:nowrap;">${it.id}</td>
+      <td style="padding:6px 8px;vertical-align:top;font-size:11.5px;color:#7a9590;white-space:nowrap;">${d.name.replace(/&amp;/g,'&')}</td>
+      <td style="padding:6px 8px;vertical-align:top;font-size:11.5px;">${it.title.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&')}</td>
+      <td style="padding:6px 8px;vertical-align:top;text-align:center;color:#c9a84c;font-size:13px;letter-spacing:1px;">${stars}</td>
+      <td style="padding:6px 8px;vertical-align:top;font-size:11px;color:#3a5248;line-height:1.55;">${rem?escapeHtml(rem):'<span style="color:#b0c0b7">—</span>'}</td>
+    </tr>`;
+  })).join('');
+
+  // Photo annex
+  let photoHtml='';
+  Object.entries(photos).forEach(([id,arr])=>{
+    if(!arr||!arr.length)return;
+    const dim=DIMENSIONS.find(d=>d.items.some(it=>it.id===id));
+    const it=dim&&dim.items.find(x=>x.id===id);
+    if(!dim||!it)return;
+    arr.forEach((p,i)=>{
+      photoHtml+=`<div style="break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;border:1px solid #d4e8e0;border-radius:8px;overflow:hidden;">
+        <img src="${p.dataUrl}" alt="Evidence ${id} #${i+1}" style="width:100%;max-height:320px;object-fit:cover;display:block;">
+        <div style="padding:10px 14px;background:#f2faf7;border-top:1px solid #d4e8e0;">
+          <div style="font-size:10.5px;color:#7a9590;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;margin-bottom:3px;">${dim.name.replace(/&amp;/g,'&')} &middot; ${it.id}</div>
+          <div style="font-size:12.5px;color:#0f1f1a;font-weight:600;margin-bottom:4px;">${it.title.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&')}</div>
+          <div style="font-size:11.5px;color:#3a5248;line-height:1.55;"><strong style="color:#044a3d;">Auditor note:</strong> ${p.desc?escapeHtml(p.desc):'<em style="color:#b0c0b7">No description provided.</em>'}</div>
+        </div>
+      </div>`;
+    });
+  });
+  if(!photoHtml)photoHtml='<p style="font-size:12px;color:#7a9590;">No photo evidence was uploaded for this audit. A senior consultant will request on-site verification during follow-up.</p>';
+
+  const scoreBoxes=DIMENSIONS.map((d,i)=>{
+    const v=r.byDim[d.key];
+    const locked=v.score===null;
+    const pct=locked?0:(v.score/20*100);
+    return `<div style="background:#e8f5f0;border:1px solid #d4e8e0;border-radius:10px;padding:10px 8px;text-align:center;flex:1;">
+      <div style="font-size:18px;font-weight:700;color:#044a3d;font-family:'Cormorant Garamond',serif;">${d.icon}</div>
+      <div style="font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:#7a9590;font-weight:700;margin:2px 0 3px;">${d.name.replace(/&amp;/g,'&').replace(/ /g,'<br>')}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:#044a3d;line-height:1;">${locked?'—':v.score}<span style="font-size:10px;color:#7a9590;font-weight:400;"> ${locked?'':'/20'}</span></div>
+      <div style="margin-top:5px;background:#d4e8e0;border-radius:2px;height:4px;overflow:hidden;"><div style="height:100%;background:linear-gradient(90deg,#0a6852,#2d8f6f);border-radius:2px;width:${pct}%;"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('printArea').innerHTML=`
+    <div class="pr-page" style="font-family:'DM Sans',sans-serif;color:#0f1f1a;max-width:760px;margin:0 auto;">
+
+      <!-- Cover header -->
+      <div class="pr-colors" style="background:linear-gradient(135deg,#044a3d,#0a6852);border-radius:10px 10px 0 0;padding:26px 32px;color:white;position:relative;overflow:hidden;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img src="assets/unirp-logo.png" alt="UniRP" style="height:26px;width:auto;">
+            <div style="font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,0.65);">Bloomfield Innovations</div>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.65);">${dateStr}</div>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#c9a84c;font-weight:700;margin-bottom:4px;">INDRIYA Audit Report</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;margin-bottom:3px;">${escapeHtml(ctx.institution||'—')}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.75);">${escapeHtml(ctx.iType||'')}${ctx.city?' &middot; '+escapeHtml(ctx.city):''}${ctx.students?' &middot; '+escapeHtml(ctx.students)+' students':''}</div>
+        <div style="display:flex;align-items:center;gap:18px;margin-top:16px;">
+          <div class="pr-colors" style="text-align:center;background:rgba(255,255,255,0.1);border:2px solid rgba(201,168,76,0.45);border-radius:10px;padding:10px 20px;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;line-height:1;color:#c9a84c;">${r.total}</div>
+            <div style="font-size:9px;letter-spacing:2px;color:rgba(255,255,255,0.65);text-transform:uppercase;margin-top:2px;">of ${r.max} &middot; INDRIYA Index</div>
+          </div>
+          <div>
+            <div class="pr-colors" style="display:inline-block;background:${lv.color};color:white;padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:6px;">${lv.label}</div>
+            <div style="font-size:11.5px;color:rgba(255,255,255,0.78);max-width:380px;line-height:1.55;">${lv.desc}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Respondent -->
+      <div style="background:#f2faf7;padding:14px 32px;border-bottom:1px solid #d4e8e0;">
+        <div style="font-size:11.5px;color:#3a5248;line-height:1.7;">
+          <strong style="color:#044a3d;">Auditor:</strong> ${escapeHtml(ctx.audName||'—')} &mdash; ${escapeHtml(ctx.audRole||'')} &nbsp;|&nbsp;
+          <strong style="color:#044a3d;">Email:</strong> ${escapeHtml(ctx.audEmail||'—')}
+          ${ctx.audPhone?' &nbsp;|&nbsp; <strong style="color:#044a3d;">Phone:</strong> '+escapeHtml(ctx.audPhone):''}
+          ${ctx.audContext?'<br><strong style="color:#044a3d;">Focus:</strong> '+escapeHtml(ctx.audContext):''}
+        </div>
+      </div>
+
+      <!-- Dimension scoreboxes -->
+      <div style="padding:20px 32px;border-bottom:1px solid #d4e8e0;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#044a3d;margin-bottom:10px;">Dimension scorecard</div>
+        <div style="display:flex;gap:6px;">${scoreBoxes}</div>
+      </div>
+
+      <!-- Summary table -->
+      <div style="padding:20px 32px;border-bottom:1px solid #d4e8e0;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#044a3d;margin-bottom:10px;">Summary by dimension</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;">
+          <thead><tr class="pr-colors" style="background:#044a3d;color:white;"><th style="padding:6px 8px;text-align:left;width:32px;">#</th><th style="padding:6px 8px;text-align:left;">Dimension</th><th style="padding:6px 8px;text-align:left;">Tier</th><th style="padding:6px 8px;text-align:center;width:60px;">Score</th></tr></thead>
+          <tbody>${dimRows}</tbody>
+        </table>
+      </div>
+
+      <!-- Roadmap -->
+      <div style="padding:20px 32px;background:#e8f5f0;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#044a3d;margin-bottom:10px;">Transformation roadmap</div>
+        ${roadmap.map((s,i)=>`<div style="display:flex;gap:8px;margin-bottom:7px;align-items:flex-start;">
+          <div class="pr-colors" style="min-width:20px;height:20px;background:#044a3d;color:#c9a84c;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px;">${i+1}</div>
+          <div style="font-size:11.5px;color:#3a5248;line-height:1.55;"><strong style="color:#044a3d;">${s.t.replace(/&mdash;/g,'—').replace(/&ndash;/g,'–')}:</strong> ${s.d.replace(/&mdash;/g,'—').replace(/&ndash;/g,'–')}</div></div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Q&A detail -->
+    <div class="pr-page" style="font-family:'DM Sans',sans-serif;color:#0f1f1a;max-width:760px;margin:20px auto 0;">
+      <div style="padding:20px 0 10px;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#044a3d;margin-bottom:4px;">Detailed observations</div>
+        <div style="font-size:11px;color:#7a9590;margin-bottom:12px;">Every rated item with the auditor&apos;s remark, in the order presented.</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr class="pr-colors" style="background:#044a3d;color:white;">
+            <th style="padding:6px 8px;text-align:left;width:38px;">ID</th>
+            <th style="padding:6px 8px;text-align:left;width:110px;">Dimension</th>
+            <th style="padding:6px 8px;text-align:left;">Item</th>
+            <th style="padding:6px 8px;text-align:center;width:86px;">Rating</th>
+            <th style="padding:6px 8px;text-align:left;">Auditor remark</th>
+          </tr></thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Photo annex -->
+    <div class="pr-page" style="font-family:'DM Sans',sans-serif;color:#0f1f1a;max-width:760px;margin:20px auto 0;">
+      <div style="padding:20px 0 10px;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#044a3d;margin-bottom:4px;">Photo evidence annex</div>
+        <div style="font-size:11px;color:#7a9590;margin-bottom:12px;">Images below were uploaded on-site by the auditor. Captions are the auditor&apos;s own notes and will be validated by a senior consultant during follow-up.</div>
+        ${photoHtml}
+      </div>
+      <div class="pr-colors" style="background:#044a3d;color:rgba(255,255,255,0.55);text-align:center;padding:13px;border-radius:0 0 10px 10px;font-size:10.5px;margin-top:20px;">
+        <strong style="color:white;">Bloomfield Innovations</strong> &middot; UniRP University Resource Planning &middot; bloomfieldinnovations.in &middot; &copy; 2026
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
+
+function printReport(){
+  // Prefer the already-generated blob (same PDF that was saved to Drive)
+  if(lastPdfBlob){
+    const url=URL.createObjectURL(lastPdfBlob);
+    const a=document.createElement('a');
+    a.href=url;a.download=pdfFilename();
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    return;
+  }
+  if(!ctx.institution){alert('Please complete the audit first.');return;}
+  // Fallback: generate on-demand, then download
+  setOverlay('Generating your PDF','One moment — preparing your INDRIYA report…');
+  document.getElementById('overlay').classList.add('active');
+  generatePdfBlob().then(b=>{
+    lastPdfBlob=b;
+    const url=URL.createObjectURL(b);
+    const a=document.createElement('a');
+    a.href=url;a.download=pdfFilename();
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+  }).catch(()=>window.print())
+    .finally(()=>document.getElementById('overlay').classList.remove('active'));
+}
+
+// ==========================================================
+// Init
+// ==========================================================
+renderAuditSections();
+renderProgress();
+</script>
+</body>
+</html>
