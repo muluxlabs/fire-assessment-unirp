@@ -22,6 +22,11 @@ body{font-family:'DM Sans',sans-serif;background:#fafcfb;color:var(--td);min-hei
 .logo-text .brand{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:white;letter-spacing:0.3px;}
 .logo-text .tagline{font-size:10px;color:rgba(255,255,255,0.52);letter-spacing:1.5px;text-transform:uppercase;}
 .header-badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);padding:6px 16px;border-radius:30px;font-size:12px;letter-spacing:0.5px;}
+.header-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.nav-link{color:rgba(255,255,255,0.78);font-size:12.5px;font-weight:500;text-decoration:none;padding:8px 14px;border-radius:22px;transition:all 0.18s;letter-spacing:0.3px;}
+.nav-link:hover{color:white;background:rgba(255,255,255,0.08);}
+.nav-link.active{color:var(--dg);background:var(--gold);}
+@media(max-width:720px){.header-inner{padding:12px 16px;gap:10px;}.header-nav{width:100%;justify-content:center;}}
 
 /* ── HERO ───────────────────────────────────────────────── */
 .hero{background:linear-gradient(135deg,var(--dg) 0%,var(--mg) 60%,var(--ag) 100%);color:white;padding:60px 32px 70px;text-align:center;position:relative;overflow:hidden;}
@@ -263,7 +268,10 @@ textarea.field-input{resize:vertical;min-height:72px;}
         <div class="tagline">University Resource Planning</div>
       </div>
     </div>
-    <div class="header-badge">&#128293; FIRE Assessment</div>
+    <nav class="header-nav" aria-label="Primary">
+      <a class="nav-link active" href="index.html" aria-current="page">&#128293; FIRE Assessment</a>
+      <a class="nav-link" href="indriya.html">&#10024; INDRIYA Audit</a>
+    </nav>
   </div>
 </header>
 
@@ -440,7 +448,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
         <div class="action-row">
           <button class="btn-action green" onclick="printReport()">&#128438; Print / Save PDF</button>
           <button class="btn-action gold" onclick="showROI()">&#128176; Calculate ROI with UniRP</button>
-          <button class="btn-action" style="background:linear-gradient(135deg,#3d1a8c,#6b2fa0);color:white;padding:11px 22px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;" onclick="showINDRIYA()">&#10024; Explore INDRIYA</button>
+          <a class="btn-action" style="background:linear-gradient(135deg,#3d1a8c,#6b2fa0);color:white;padding:11px 22px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:4px;" href="indriya.html">&#10024; Start INDRIYA Smart Campus Audit</a>
           <button class="btn-action outline" onclick="location.reload()">&#8635; New Assessment</button>
         </div>
       </div>
@@ -525,7 +533,8 @@ textarea.field-input{resize:vertical;min-height:72px;}
           <div class="indriya-success" id="indSuccess">
             <div class="big-tick">&#10004;&#65039;</div>
             <h3 style="font-family:'Cormorant Garamond',serif;font-size:26px;color:#3d1a8c;margin-bottom:8px;">Thank You!</h3>
-            <p style="font-size:14px;color:var(--tm);line-height:1.7;">Your INDRIYA interest has been registered. Our senior consultant will contact you within <strong>48 hours</strong> to discuss a tailored INDRIYA programme for your institution.</p>
+            <p style="font-size:14px;color:var(--tm);line-height:1.7;margin-bottom:14px;">Your INDRIYA interest has been registered. Our senior consultant will contact you within <strong>48 hours</strong>. Meanwhile, you can begin the structured INDRIYA Smart Campus Audit yourself &mdash; the first four dimensions are free.</p>
+            <a href="indriya.html" class="btn-indriya" style="display:inline-block;text-decoration:none;width:auto;padding:12px 28px;">Start INDRIYA Smart Campus Audit &rarr;</a>
           </div>
           <div style="text-align:center;margin-top:20px;">
             <button class="btn-action outline" onclick="hideINDRIYA()">&#8592; Back to Results</button>
