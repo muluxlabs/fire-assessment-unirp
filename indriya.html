@@ -9,7 +9,6 @@
 <link rel="icon" href="assets/unirp-logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 :root{
   --dg:#044a3d; --mg:#0a6852; --ag:#2d8f6f; --lg:#e8f5f0; --pg:#f2faf7;
@@ -858,7 +857,6 @@ const ratings={}; // { I1: 3, I2: 4, ... } (points 0..4)
 const remarks={}; // { I1: '...' }
 const photos={};  // { I1: [{dataUrl,name,desc}] }
 const ctx={};
-let lastPdfBlob=null; // filled by submitAudit for the Download button
 
 // ==========================================================
 // Progress bar
@@ -950,18 +948,14 @@ function renderItem(dimKey,item,num){
       <div class="remark-label">Remarks / observation</div>
       <textarea class="remark-input" placeholder="What did you see or hear on-ground? e.g. 3 of 12 classrooms have interactive displays; rest have projectors only." oninput="remarks['${item.id}']=this.value"></textarea>
     </div>
-            <div class="photo-row">
-              <label class="photo-drop">
-                <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotoUpload(event,'${item.id}')">
-                <span class="photo-drop-icon">&#128247;</span>
-                <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
-              </label>
-              <div class="photo-previews" id="prev-${item.id}"></div>
-              <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
-            </div>
+    <div class="photo-row">
+      <label class="photo-drop">
+        <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotos(event,'${item.id}')">
+        <span class="photo-drop-icon">&#128247;</span>
+        <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
       </label>
       <div class="photo-previews" id="prev-${item.id}"></div>
-      <div class="photo-warn">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
+      <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
     </div>
   </div>`;
 }
@@ -1159,38 +1153,18 @@ async function submitAudit(){
   // If the user chose the premium path, Dim 6 must be fully rated before submission.
   if(unlocked && !validateDimension(DIMENSIONS[5])) return;
 
-  setOverlay('Generating your INDRIYA report','Building the PDF with observations &amp; photos embedded…');
+  setOverlay('Saving your INDRIYA audit','Uploading your observations &amp; photo evidence &mdash; your report PDF is being built on our server.');
   document.getElementById('overlay').classList.add('active');
 
   const results=computeScores();
 
-  // 1. Render on-screen results + print-area HTML (used as source for PDF)
+  // Populate the on-screen results + #printArea (used by the browser "Download" button via window.print()).
   renderResults(results);
 
-  // Give the browser a frame to lay out the fresh DOM and begin decoding images.
-  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-
-  // 2. Generate PDF blob from the print area (photos embedded via data URLs)
-  let pdfBase64='';
-  lastPdfBlob=null;
+  // Send the full payload to Apps Script. The server builds the PDF and saves
+  // it to Drive — we never ship a PDF from the browser.
   try{
-    setOverlay('Generating your INDRIYA report','Rendering pages &amp; embedding photo evidence…');
-    lastPdfBlob=await generatePdfBlob();
-    if(!lastPdfBlob || lastPdfBlob.size<800){
-      console.log('[v0] PDF looked empty, size=',lastPdfBlob && lastPdfBlob.size);
-      throw new Error('Generated PDF was empty');
-    }
-    pdfBase64=await blobToBase64(lastPdfBlob);
-  }catch(err){
-    console.log('[v0] PDF generation failed:',err && err.message);
-    lastPdfBlob=null;
-    pdfBase64='';
-  }
-
-  // 3. Submit one record to the sheet (includes the PDF — saved to Drive server-side)
-  setOverlay('Saving your audit','Uploading report to Drive and recording submission…');
-  try{
-    await pushToSheet(buildPayload(results,pdfBase64));
+    await pushToSheet(buildPayload(results));
   }catch(e){
     console.log('[v0] Sheet submit error:',e && e.message);
   }
@@ -1204,7 +1178,44 @@ function setOverlay(title,msg){
   const m=document.getElementById('ovMsg');  if(m) m.innerHTML=msg;
 }
 
-function buildPayload(results,pdfBase64){
+// Flatten the current audit state into a structure the Apps Script uses to
+// render the PDF: for each RATED dimension, we send every item with its
+// rating, remark and photo evidence (data URL + description).
+function buildDimensionsPayload(){
+  const visible=unlocked?DIMENSIONS:DIMENSIONS.filter(d=>d.tier==='free');
+  return visible.map(dim=>({
+    key:dim.key,
+    name:stripTags(dim.name),
+    tier:dim.tier,
+    items:dim.items.map(it=>({
+      id:it.id,
+      title:stripTags(it.title),
+      hint:stripTags(it.hint),
+      rating:(it.id in ratings)?ratings[it.id]:null,
+      ratingLabel:ratingLabelFor(ratings[it.id]),
+      remark:remarks[it.id]||'',
+      photos:(photos[it.id]||[]).map(p=>({
+        dataUrl:p.dataUrl||'',
+        desc:p.desc||''
+      }))
+    }))
+  }));
+}
+
+function stripTags(s){return String(s||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&mdash;/g,'—').replace(/&ndash;/g,'–');}
+function ratingLabelFor(pts){
+  if(pts===null||pts===undefined) return 'Not rated';
+  const hit=RATING_LABELS.find(r=>r.pts===pts);
+  return hit?hit.label:String(pts);
+}
+
+function pdfFilename(){
+  const inst=(ctx.institution||'institution').replace(/[^\w\-]+/g,'_').substring(0,40);
+  const stamp=new Date().toISOString().replace(/[:.]/g,'-').substring(0,19);
+  return `INDRIYA_${inst}_${stamp}.pdf`;
+}
+
+function buildPayload(results){
   return {
     type:'INDRIYA_AUDIT',
     timestamp:new Date().toISOString(),
@@ -1217,8 +1228,9 @@ function buildPayload(results,pdfBase64){
       max:results.max
     },
     premium_requested:unlocked===true,
-    pdf_base64:pdfBase64||'',
-    pdf_filename:pdfFilename()
+    pdf_filename:pdfFilename(),
+    // NEW: everything the server needs to render the PDF itself.
+    dimensions:buildDimensionsPayload()
   };
 }
 
@@ -1227,88 +1239,6 @@ async function pushToSheet(payload){
   try{
     await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   }catch(e){/* silent */}
-}
-
-// ──────────── PDF generation (html2pdf + jsPDF) ────────────
-function pdfFilename(){
-  const inst=(ctx.institution||'institution').replace(/[^\w\-]+/g,'_').substring(0,40);
-  const stamp=new Date().toISOString().replace(/[:.]/g,'-').substring(0,19);
-  return `INDRIYA_${inst}_${stamp}.pdf`;
-}
-
-// Wait for every <img> inside a node to actually decode, so html2canvas
-// doesn't snapshot a blank frame. Also resolves images that were already
-// complete before this call.
-function waitForImages(root){
-  const imgs=Array.from(root.querySelectorAll('img'));
-  if(!imgs.length) return Promise.resolve();
-  return Promise.all(imgs.map(img=>{
-    if(img.complete && img.naturalWidth>0){
-      return img.decode ? img.decode().catch(()=>{}) : Promise.resolve();
-    }
-    return new Promise(res=>{
-      const done=()=>res();
-      img.addEventListener('load',done,{once:true});
-      img.addEventListener('error',done,{once:true});
-      // Safety timeout — never hang PDF generation on a broken image.
-      setTimeout(done,4000);
-    });
-  }));
-}
-
-function generatePdfBlob(){
-  const el=document.getElementById('printArea');
-  if(!el) return Promise.reject(new Error('No print area.'));
-  if(typeof html2pdf==='undefined') return Promise.reject(new Error('html2pdf not loaded.'));
-  if(!el.innerHTML || !el.innerHTML.trim()) return Promise.reject(new Error('Print area is empty — renderResults was not called.'));
-
-  // Render the element fully opaque on-screen so html2canvas captures real
-  // pixels. The progress overlay sits at z-index:1000 and covers it visually,
-  // so the user never sees it flash.
-  const prev={
-    display:el.style.display, position:el.style.position, left:el.style.left, top:el.style.top,
-    width:el.style.width, background:el.style.background, zIndex:el.style.zIndex,
-    opacity:el.style.opacity, pointerEvents:el.style.pointerEvents, visibility:el.style.visibility
-  };
-  el.style.display='block';
-  el.style.position='fixed';
-  el.style.left='0';
-  el.style.top='0';
-  el.style.width='794px';           // ~ A4 width in CSS px @ 96dpi
-  el.style.background='#ffffff';
-  el.style.zIndex='1';              // below overlay (z:1000) but fully rendered
-  el.style.opacity='1';             // MUST be 1 — html2canvas honors opacity
-  el.style.visibility='visible';
-  el.style.pointerEvents='none';
-
-  const opt={
-    margin:[8,8,10,8],
-    filename:pdfFilename(),
-    image:{type:'jpeg',quality:0.92},
-    html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false,windowWidth:794},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait',compress:true},
-    pagebreak:{mode:['css','legacy'],after:'.pr-page'}
-  };
-
-  const restore=()=>Object.assign(el.style,prev);
-
-  return waitForImages(el)
-    .then(()=>html2pdf().set(opt).from(el).output('blob'))
-    .then(blob=>{ restore(); return blob; })
-    .catch(err=>{ restore(); throw err; });
-}
-
-function blobToBase64(blob){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>{
-      const s=String(r.result||'');
-      const idx=s.indexOf(',');
-      resolve(idx>=0?s.substring(idx+1):s);
-    };
-    r.onerror=()=>reject(r.error||new Error('FileReader error'));
-    r.readAsDataURL(blob);
-  });
 }
 
 function renderResults(r){
@@ -1566,29 +1496,17 @@ function buildPrintArea(r,lv,roadmap){
 
 function escapeHtml(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);}
 
+// The download is handled by the browser's native print dialog — the
+// @media print rules in the stylesheet already show only #printArea, which
+// renderResults() has populated with the full report (cover, scorecard,
+// observations and photo annex). Users can choose "Save as PDF" in the
+// print dialog for a client-side PDF, while the server keeps its own copy
+// in Drive for the consultant team.
 function printReport(){
-  // Prefer the already-generated blob (same PDF that was saved to Drive)
-  if(lastPdfBlob){
-    const url=URL.createObjectURL(lastPdfBlob);
-    const a=document.createElement('a');
-    a.href=url;a.download=pdfFilename();
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),2000);
-    return;
-  }
-  if(!ctx.institution){alert('Please complete the audit first.');return;}
-  // Fallback: generate on-demand, then download
-  setOverlay('Generating your PDF','One moment — preparing your INDRIYA report…');
-  document.getElementById('overlay').classList.add('active');
-  generatePdfBlob().then(b=>{
-    lastPdfBlob=b;
-    const url=URL.createObjectURL(b);
-    const a=document.createElement('a');
-    a.href=url;a.download=pdfFilename();
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),2000);
-  }).catch(()=>window.print())
-    .finally(()=>document.getElementById('overlay').classList.remove('active'));
+  if(!ctx.institution){ alert('Please complete the audit first.'); return; }
+  const pa=document.getElementById('printArea');
+  if(!pa || !pa.innerHTML.trim()){ alert('Report is still being prepared — please wait a moment and try again.'); return; }
+  window.print();
 }
 
 // ==========================================================

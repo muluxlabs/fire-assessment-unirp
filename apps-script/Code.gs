@@ -138,7 +138,7 @@ function handleIndriyaLead_(p) {
 }
 
 // ============================================================
-//  INDRIYA AUDIT  (full submission, PDF saved to Drive)
+//  INDRIYA AUDIT  (full submission, PDF built & saved server-side)
 // ============================================================
 function handleIndriyaAudit_(p) {
   const ctx     = p.context || {};
@@ -146,21 +146,25 @@ function handleIndriyaAudit_(p) {
   const byDim   = scores.byDim || {};
   const premium = (p.premium_requested === true || p.premium_requested === 'yes' || p.premium_requested === 'YES');
 
-  // 1. Save PDF to Drive first (if provided) so the row already has the link
+  // 1. Build and save the PDF. Prefer the client-supplied base64 (legacy path)
+  //    but normally we render the PDF from the payload on the server.
   let pdfUrl  = '';
   let pdfName = '';
   let pdfErr  = '';
-  if (p.pdf_base64) {
-    try {
-      const saved = savePdfToDrive_(p.pdf_base64, ctx.institution, ctx.audName, p.pdf_filename);
-      pdfUrl  = saved.url;
-      pdfName = saved.name;
-    } catch (err) {
-      pdfErr = String(err && err.message || err);
-      logError_(err);
+  try {
+    let saved;
+    if (p.pdf_base64) {
+      saved = savePdfToDrive_(p.pdf_base64, ctx.institution, ctx.audName, p.pdf_filename);
+    } else {
+      const html = buildAuditHtml_(p, premium);
+      const pdfBlob = Utilities.newBlob(html, 'text/html', 'audit.html').getAs('application/pdf');
+      saved = savePdfBlobToDrive_(pdfBlob, ctx.institution, ctx.audName, p.pdf_filename);
     }
-  } else {
-    pdfErr = 'client did not send pdf_base64';
+    pdfUrl  = saved.url;
+    pdfName = saved.name;
+  } catch (err) {
+    pdfErr = String(err && err.message || err);
+    logError_(err);
   }
 
   // 2. Write the row
@@ -236,6 +240,185 @@ function sanitize_(s) {
     .replace(/\s+/g, ' ')
     .trim()
     .substring(0, 120) || 'Unknown';
+}
+
+// Saves an already-built PDF blob to the per-institution Drive sub-folder
+// under DRIVE_FOLDER_ID. Mirrors savePdfToDrive_ but skips base64 decoding.
+function savePdfBlobToDrive_(pdfBlob, institution, auditor, suggestedName) {
+  const parent   = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+  const safeInst = sanitize_(institution || 'Unknown Institution');
+  const it       = parent.getFoldersByName(safeInst);
+  const instFolder = it.hasNext() ? it.next() : parent.createFolder(safeInst);
+
+  const tz    = Session.getScriptTimeZone() || 'Asia/Kolkata';
+  const stamp = Utilities.formatDate(new Date(), tz, 'yyyyMMdd_HHmmss');
+  const tag   = auditor ? ('_' + sanitize_(auditor).replace(/\s+/g, '-')) : '';
+  const name  = suggestedName && /\.pdf$/i.test(suggestedName)
+    ? suggestedName
+    : ('INDRIYA_' + safeInst.replace(/\s+/g, '-') + tag + '_' + stamp + '.pdf');
+
+  pdfBlob.setName(name);
+  const file = instFolder.createFile(pdfBlob);
+  file.setDescription(
+    'INDRIYA Smart Campus Audit - ' + (institution || '') +
+    (auditor ? ' - auditor: ' + auditor : '') +
+    ' - generated server-side ' + new Date().toISOString()
+  );
+  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (_) {}
+  return { url: file.getUrl(), name: name };
+}
+
+// Builds the full HTML source for the INDRIYA audit PDF. Photos are embedded
+// as data URLs, so Google's HTML -> PDF converter renders them inline without
+// needing any external fetch.
+function buildAuditHtml_(p, premium) {
+  const ctx    = p.context || {};
+  const scores = p.scores  || {};
+  const byDim  = scores.byDim || {};
+  const dims   = Array.isArray(p.dimensions) ? p.dimensions : [];
+
+  const tz    = Session.getScriptTimeZone() || 'Asia/Kolkata';
+  const date  = Utilities.formatDate(new Date(), tz, 'dd MMMM yyyy, HH:mm');
+  const total = (scores.total  == null ? '-' : scores.total);
+  const max   = (scores.max    == null ? 120 : scores.max);
+  const pct   = (typeof scores.total === 'number' && max) ? Math.round((scores.total / max) * 100) : '-';
+  const scope = premium ? 'Full INDRIYA audit - 6 dimensions' : 'Free tier - 4 technical dimensions';
+
+  const dimMap = [
+    ['I','Digital Infrastructure'],
+    ['E','Student Experience'],
+    ['A','Automation &amp; RPA'],
+    ['D','Data Intelligence'],
+    ['R','Innovation &amp; Industry'],
+    ['S','Sustainability &amp; Future Readiness']
+  ];
+  const scorecardRows = dimMap.map(function(d){
+    var v = byDim[d[0]];
+    var val = (v == null || v === '') ? '<em style="color:#999">not rated</em>' : (v + ' / 20');
+    return '<tr><td>' + d[1] + '</td><td style="text-align:right;font-weight:600">' + val + '</td></tr>';
+  }).join('');
+
+  function dimSection(dim) {
+    var items = (dim.items || []).map(function(it){
+      var stars = (typeof it.rating === 'number')
+        ? ('&#9733;'.repeat(it.rating + 1) + '<span style="color:#d5d5d5">' + '&#9733;'.repeat(4 - it.rating) + '</span>')
+        : '<span style="color:#b7b7b7">(not rated)</span>';
+      var remark = it.remark ? htmlEscape_(it.remark) : '<em style="color:#9a9a9a">No written observation.</em>';
+      var photos = (it.photos || []).filter(function(ph){ return ph && ph.dataUrl; });
+      var photoHtml = '';
+      if (photos.length) {
+        photoHtml = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">' +
+          photos.map(function(ph){
+            return '<div style="width:32%;border:1px solid #e0ddd4;border-radius:6px;overflow:hidden;page-break-inside:avoid;">' +
+                     '<img src="' + ph.dataUrl + '" style="display:block;width:100%;height:110px;object-fit:cover;">' +
+                     '<div style="padding:5px 7px;font-size:9.5px;color:#3a3a3a;line-height:1.4;">' +
+                        (ph.desc ? htmlEscape_(ph.desc) : '<em style="color:#a6a6a6">No description.</em>') +
+                     '</div>' +
+                   '</div>';
+          }).join('') +
+        '</div>';
+      }
+      return '<tr>' +
+        '<td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;width:38%;">' +
+          '<div style="font-weight:600;color:#0a3a2f;font-size:11.5px;">' + htmlEscape_(it.title || '') + '</div>' +
+          '<div style="font-size:9.5px;color:#8a8a8a;margin-top:2px;">' + htmlEscape_(it.hint || '') + '</div>' +
+        '</td>' +
+        '<td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;width:18%;font-size:13px;color:#d19a2c;">' + stars +
+          '<div style="font-size:9.5px;color:#555;font-weight:600;">' + htmlEscape_(it.ratingLabel || '') + '</div>' +
+        '</td>' +
+        '<td style="padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top;width:44%;font-size:10.5px;color:#222;line-height:1.45;">' +
+          remark + photoHtml +
+        '</td>' +
+      '</tr>';
+    }).join('');
+
+    return '<section style="page-break-inside:avoid;margin-top:18px;">' +
+      '<h2 style="font-size:15px;margin:0 0 6px;color:#044a3d;border-bottom:2px solid #c9a84c;padding-bottom:4px;">' +
+        htmlEscape_(dim.name || '') +
+      '</h2>' +
+      '<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;">' +
+        '<thead><tr style="background:#f4f1e8;">' +
+          '<th style="text-align:left;padding:6px 10px;font-size:9.5px;color:#6a6a6a;text-transform:uppercase;letter-spacing:1px;">Item</th>' +
+          '<th style="text-align:left;padding:6px 10px;font-size:9.5px;color:#6a6a6a;text-transform:uppercase;letter-spacing:1px;">Rating</th>' +
+          '<th style="text-align:left;padding:6px 10px;font-size:9.5px;color:#6a6a6a;text-transform:uppercase;letter-spacing:1px;">Observation &amp; Evidence</th>' +
+        '</tr></thead>' +
+        '<tbody>' + items + '</tbody>' +
+      '</table>' +
+    '</section>';
+  }
+
+  var dimensionsHtml = dims.length
+    ? dims.map(dimSection).join('')
+    : '<p style="color:#8a8a8a;font-style:italic;">No dimension data submitted.</p>';
+
+  return '' +
+  '<!doctype html><html><head><meta charset="utf-8"><title>INDRIYA Audit - ' + htmlEscape_(ctx.institution || '') + '</title>' +
+  '<style>' +
+    '@page{size:A4;margin:14mm 14mm;}' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#1a2a26;margin:0;padding:0;font-size:11px;}' +
+    'h1,h2,h3{font-family:Georgia,\'Times New Roman\',serif;}' +
+    '.cover{background:#044a3d;color:#fff;padding:36px 32px 30px;border-radius:10px;}' +
+    '.cover h1{font-size:28px;margin:0 0 6px;letter-spacing:1px;}' +
+    '.cover .sub{font-size:12px;opacity:0.85;letter-spacing:2px;text-transform:uppercase;}' +
+    '.cover .inst{font-size:20px;margin:22px 0 4px;color:#fff;}' +
+    '.cover .meta{font-size:11px;opacity:0.85;line-height:1.7;}' +
+    '.scorecard{margin:18px 0 6px;display:flex;gap:14px;}' +
+    '.score-big{background:#fbf6e8;border:1.5px solid #c9a84c;border-radius:10px;padding:16px 18px;width:42%;}' +
+    '.score-big .num{font-size:38px;font-weight:700;color:#044a3d;line-height:1;}' +
+    '.score-big .lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#8a6a1e;margin-top:4px;}' +
+    '.score-list{flex:1;border:1px solid #e0ddd4;border-radius:10px;padding:4px 12px;}' +
+    '.score-list table{width:100%;border-collapse:collapse;font-size:11px;}' +
+    '.score-list td{padding:5px 0;border-bottom:1px dotted #eee;}' +
+    '.score-list tr:last-child td{border-bottom:none;}' +
+    '.tag{display:inline-block;background:#fff;color:#044a3d;border-radius:14px;padding:3px 12px;font-size:10px;font-weight:600;letter-spacing:1px;margin-top:6px;}' +
+  '</style></head><body>' +
+
+    '<div class="cover">' +
+      '<div class="sub">INDRIYA Smart Campus Audit</div>' +
+      '<h1>Digital Transformation Report</h1>' +
+      '<div class="inst">' + htmlEscape_(ctx.institution || 'Institution') + '</div>' +
+      '<div class="meta">' +
+        (ctx.iType     ? 'Type: '     + htmlEscape_(ctx.iType)    + '<br>' : '') +
+        (ctx.city      ? 'Location: ' + htmlEscape_(ctx.city)     + '<br>' : '') +
+        (ctx.students  ? 'Students: ' + htmlEscape_(ctx.students) + '<br>' : '') +
+        (ctx.programs  ? 'Programs: ' + htmlEscape_(ctx.programs) + '<br>' : '') +
+        '<br>Auditor: ' + htmlEscape_(ctx.audName || '-') + (ctx.audRole ? ' (' + htmlEscape_(ctx.audRole) + ')' : '') + '<br>' +
+        'Generated: ' + date + ' IST' +
+      '</div>' +
+      '<span class="tag">' + htmlEscape_(scope) + (premium ? ' &middot; PRIORITY' : '') + '</span>' +
+    '</div>' +
+
+    '<div class="scorecard">' +
+      '<div class="score-big">' +
+        '<div class="num">' + total + '<span style="font-size:16px;font-weight:500;color:#8a6a1e;">/' + max + '</span></div>' +
+        '<div class="lbl">INDRIYA Index &middot; ' + pct + (pct === '-' ? '' : '%') + '</div>' +
+      '</div>' +
+      '<div class="score-list">' +
+        '<table>' + scorecardRows + '</table>' +
+      '</div>' +
+    '</div>' +
+
+    '<h2 style="font-size:14px;margin:22px 0 4px;color:#044a3d;letter-spacing:1px;">DIMENSION-LEVEL FINDINGS</h2>' +
+    '<p style="font-size:10.5px;color:#555;margin:0 0 6px;line-height:1.5;">' +
+      'The following pages detail the on-ground rating, the auditor\'s written observation and the attached photo evidence for each item in each completed dimension. Photos are held as colour evidence and are reviewed by the UniRP consultant team for on-site verification.' +
+    '</p>' +
+
+    dimensionsHtml +
+
+    '<footer style="margin-top:26px;padding-top:10px;border-top:1px solid #e0ddd4;font-size:9px;color:#8a8a8a;text-align:center;">' +
+      'Generated by INDRIYA Smart Campus Audit &middot; UniRP by Bloomfield Innovations (Marwadi Chandarana Group) &middot; ' + date + ' IST' +
+    '</footer>' +
+
+  '</body></html>';
+}
+
+function htmlEscape_(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ============================================================
@@ -444,14 +627,22 @@ function selfTest() {
     institution: 'Self-Test University', phone: '+91 0000000000',
     goals: 'Self-test lead.'
   });
+  // 1x1 red JPEG data URL, just enough to prove photo embedding works.
+  var tinyJpeg = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiiv//Z';
   handleIndriyaAudit_({
     type: 'INDRIYA_AUDIT',
     context: { institution: 'Self-Test University', iType: 'Private', city: 'Remote', students: '5000',
                audName: 'Test Auditor', audRole: 'Registrar', audEmail: 'test@example.com', audPhone: '', audContext: 'self-test' },
-    ratings: {}, remarks: {},
+    ratings: { I1: 2, I2: 3 }, remarks: { I1: 'Wi-Fi has a dead zone in Block B.', I2: '3 of 12 rooms have interactive displays.' },
     scores: { byDim: { I: 14, E: 12, A: 10, D: 11 }, total: 47, max: 80 },
     premium_requested: false,
-    pdf_base64: Utilities.base64Encode('%PDF-1.4\n%self-test\n'),
+    dimensions: [{
+      key: 'I', name: 'Digital Infrastructure', tier: 'free',
+      items: [
+        { id:'I1', title:'Campus-wide Wi-Fi coverage', hint:'Any dead zones?', rating:2, ratingLabel:'Intermediate', remark:'Dead zone near Block B west wing.', photos:[{dataUrl:tinyJpeg, desc:'Router map from IT office.'}] },
+        { id:'I2', title:'Smart classrooms',          hint:'% with interactive displays', rating:3, ratingLabel:'Advanced',    remark:'3 of 12 rooms have interactive displays.', photos:[] }
+      ]
+    }],
     pdf_filename: 'INDRIYA_selftest.pdf'
   });
 }
