@@ -175,7 +175,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
 .btn-action.gold{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 3px 12px rgba(201,168,76,0.3);}
 .btn-action.gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,0.4);}
 
-/* ── ROI CALCULATOR SECTION ───�����─────────────────────────── */
+/* ── ROI CALCULATOR SECTION ───�������─────────────────────────── */
 .roi-section{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-top:24px;display:none;animation:fadeSlide 0.4s ease;}
 .roi-section.active{display:block;}
 .roi-header{background:linear-gradient(135deg,#1a3a5c,#2563a0);padding:28px 32px;color:white;}
@@ -204,6 +204,19 @@ textarea.field-input{resize:vertical;min-height:72px;}
 .roi-table .money{font-weight:600;color:var(--mg);font-family:'Cormorant Garamond',serif;font-size:15px;}
 .roi-note{background:#fff8e8;border:1.5px solid #f0e4c3;border-radius:10px;padding:14px 16px;margin-top:16px;font-size:12.5px;color:#7a6030;line-height:1.65;}
 .roi-note strong{color:#5a4520;}
+.roi-fire-banner{background:linear-gradient(135deg,#0d4a3a,#1a6e58);color:white;border-radius:14px;padding:18px 22px;margin-bottom:22px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;}
+.roi-fire-banner.empty{background:linear-gradient(135deg,#3a3f44,#5a5f64);}
+.roi-fb-score{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;line-height:1;}
+.roi-fb-score small{font-size:14px;opacity:0.7;font-weight:500;}
+.roi-fb-label{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,0.7);margin-bottom:4px;}
+.roi-fb-pillars{display:flex;gap:10px;flex-wrap:wrap;}
+.roi-fb-pill{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:6px 12px;font-size:11.5px;color:white;font-weight:500;letter-spacing:0.3px;}
+.roi-fb-pill b{font-family:'Cormorant Garamond',serif;font-size:15px;margin-left:4px;}
+.roi-fb-headroom{text-align:right;}
+.roi-fb-headroom .v{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#f5d27a;line-height:1;}
+.roi-fb-headroom .l{font-size:10.5px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,0.65);margin-top:3px;}
+.roi-section-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--dg);margin:22px 0 4px;}
+.roi-section-sub{font-size:12.5px;color:var(--tm);line-height:1.6;margin-bottom:14px;}
 
 /* ── INDRIYA SECTION ─────────────────────────────────────── */
 .indriya-page{display:none;}
@@ -461,6 +474,10 @@ textarea.field-input{resize:vertical;min-height:72px;}
         <p>Based on your institution profile and industry benchmarks, we calculate your estimated cost savings and return on investment from implementing UniRP.</p>
       </div>
       <div class="roi-body">
+        <div class="roi-fire-banner" id="roiFireBanner" style="display:none;"></div>
+
+        <div class="roi-section-title">Institution Profile</div>
+        <p class="roi-section-sub">Pre-filled from your FIRE submission &mdash; edit any field if your numbers differ.</p>
         <div class="roi-inputs" id="roiInputsGrid">
           <div class="field-group">
             <label class="field-label">Total Students</label>
@@ -482,7 +499,54 @@ textarea.field-input{resize:vertical;min-height:72px;}
             </select>
           </div>
         </div>
-        <button class="btn-next" onclick="calcROI()" style="width:100%;">&#128202; Calculate My ROI</button>
+
+        <div class="roi-section-title">Refine Your ROI Analysis</div>
+        <p class="roi-section-sub">Five targeted questions calibrate the projection against your operating context. Defaults are based on UniRP&apos;s benchmark dataset of 15+ university implementations.</p>
+        <div class="roi-inputs" id="roiFollowupGrid" style="grid-template-columns:1fr 1fr;">
+          <div class="field-group">
+            <label class="field-label">Annual admissions / applications received</label>
+            <input type="number" class="field-input" id="roi_admissions" placeholder="defaults to 25% of students" min="0">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Annual administrative payroll</label>
+            <select class="field-input" id="roi_payroll">
+              <option value="2">Under &#8377;2 Cr</option>
+              <option value="3.5" selected>&#8377;2&ndash;5 Cr</option>
+              <option value="7">&#8377;5&ndash;10 Cr</option>
+              <option value="15">&#8377;10&ndash;20 Cr</option>
+              <option value="25">Above &#8377;20 Cr</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Annual paper, print &amp; courier spend</label>
+            <select class="field-input" id="roi_paper">
+              <option value="0.5">Under &#8377;1 L</option>
+              <option value="2.5" selected>&#8377;1&ndash;5 L</option>
+              <option value="7">&#8377;5&ndash;10 L</option>
+              <option value="15">&#8377;10&ndash;25 L</option>
+              <option value="35">Above &#8377;25 L</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Implementation pace</label>
+            <select class="field-input" id="roi_pace">
+              <option value="aggressive">Aggressive &mdash; full rollout in 12 months</option>
+              <option value="standard" selected>Standard &mdash; phased rollout in 18&ndash;24 months</option>
+              <option value="phased">Phased &mdash; gradual rollout over 36 months</option>
+            </select>
+          </div>
+          <div class="field-group" style="grid-column:1 / -1;">
+            <label class="field-label">Top transformation priority</label>
+            <select class="field-input" id="roi_priority">
+              <option value="operations">Operational efficiency &mdash; reduce manual work, speed up processes</option>
+              <option value="experience" selected>Student &amp; faculty experience &mdash; self-service, mobile, real-time</option>
+              <option value="compliance">Compliance &amp; accreditation &mdash; NAAC / NBA / regulatory readiness</option>
+              <option value="cost">Cost optimisation &mdash; lowest TCO, fastest payback</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-next" onclick="calcROI()" style="width:100%;margin-top:8px;">&#128202; Calculate My ROI</button>
         <div class="roi-results" id="roiResults">
           <div style="margin:24px 0 12px;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--dg);">&#128200; Your ROI Summary</div>
           <div class="roi-summary" id="roiSummary"></div>
@@ -575,68 +639,68 @@ textarea.field-input{resize:vertical;min-height:72px;}
 
 <script>
 // ──────────────────────────────────────────────────────────
-// DATA: 5 pillars × 5 questions × 5 options each (scores 0-5 but only 5 options)
+// DATA: 5 pillars × 5 questions × 5 options each (scores 1-5; min 1 reflects baseline management)
 // ──────────────────────────────────────────────────────────
 const QUESTIONS = {
   F:[
     {id:'F1',text:'How are student admission applications processed?',opts:[
-      ['Paper forms and manual data entry',0],['Excel-based tracking and management',2],
+      ['Paper forms and manual data entry',1],['Excel-based tracking and management',2],
       ['Standalone admission software',3],['ERP-based integrated admission system',4],
       ['Fully automated admission workflows with self-service',5]]},
     {id:'F2',text:'How are student records managed and stored?',opts:[
-      ['Physical paper files only',0],['Excel sheets per department',2],
+      ['Physical paper files only',1],['Excel sheets per department',2],
       ['Department-level software systems',3],['Central ERP database',4],
       ['Integrated digital student lifecycle management',5]]},
     {id:'F3',text:'How are academic timetables generated and managed?',opts:[
-      ['Manual scheduling on paper',0],['Excel-based planning',2],
+      ['Manual scheduling on paper',1],['Excel-based planning',2],
       ['Dedicated scheduling software',3],['ERP timetable module with conflict detection',4],
       ['AI-based automated timetable optimisation',5]]},
     {id:'F4',text:'How is examination result processing handled?',opts:[
-      ['Manual result compilation',0],['Excel-based marks processing',2],
+      ['Manual result compilation',1],['Excel-based marks processing',2],
       ['Standalone examination software',3],['ERP examination module',4],
       ['Fully automated result processing with online publication',5]]},
     {id:'F5',text:'How are institutional approvals managed? (leave, purchases, requests)',opts:[
-      ['Paper-based approvals only',0],['Shared documents / online forms',2],
+      ['Paper-based approvals only',1],['Shared documents / online forms',2],
       ['Dedicated workflow software',3],['ERP-driven workflow management',4],
       ['Fully automated approvals with mobile access',5]]},
   ],
   I:[
     {id:'I1',text:'How quickly can leadership access institutional performance reports?',opts:[
-      ['Manual collection — over a week',0],['Excel-compiled reports — 3-5 days',2],
+      ['Manual collection — over a week',1],['Excel-compiled reports — 3-5 days',2],
       ['Department-level reports — 1-2 days',3],['ERP-generated reports — same day',4],
       ['Real-time dashboards available anytime',5]]},
     {id:'I2',text:'How is institutional data stored and managed?',opts:[
-      ['Data in isolated departments',0],['Shared spreadsheets across teams',2],
+      ['Data in isolated departments',1],['Shared spreadsheets across teams',2],
       ['Department-level databases',3],['Central ERP database',4],
       ['Fully integrated data ecosystem with governance',5]]},
     {id:'I3',text:'How accurate and consistent is your institutional data?',opts:[
-      ['Frequent inconsistencies across departments',0],['Manual verification required regularly',2],
+      ['Frequent inconsistencies across departments',1],['Manual verification required regularly',2],
       ['Moderate accuracy with occasional errors',3],['ERP-validated data with high reliability',4],
       ['Automated data validation and quality control',5]]},
     {id:'I4',text:'How does leadership make strategic decisions?',opts:[
-      ['Mostly intuition and experience',0],['Based on basic periodic reports',2],
+      ['Mostly intuition and experience',1],['Based on basic periodic reports',2],
       ['Regular MIS reports with analysis',3],['Dashboard-driven data decisions',4],
       ['Predictive analytics and AI-driven insights',5]]},
     {id:'I5',text:'How are compliance reports (NAAC, NBA, regulatory) generated?',opts:[
-      ['Manual compilation from multiple sources',0],['Excel-based report preparation',2],
+      ['Manual compilation from multiple sources',1],['Excel-based report preparation',2],
       ['Semi-automated with some data from ERP',3],['ERP-generated compliance reports',4],
       ['Fully automated compliance reporting',5]]},
   ],
   R:[
     {id:'R1',text:'What level of workflow automation exists in your institution?',opts:[
-      ['No workflow systems — everything is manual',0],['Email-based workflows without tracking',1],
+      ['No workflow systems — everything is manual',1],['Email-based workflows without tracking',1],
       ['Basic workflow tools',3],['ERP-driven workflow management',4],
       ['Automated workflows with event triggers and notifications',5]]},
     {id:'R2',text:'How well are your institutional systems integrated?',opts:[
-      ['Independent, siloed systems',0],['Manual data transfer between systems',2],
+      ['Independent, siloed systems',1],['Manual data transfer between systems',2],
       ['Partial integrations between some systems',3],['ERP-integrated key systems',4],
       ['API-driven ecosystem with seamless integration',5]]},
     {id:'R3',text:'What self-service portals are available to students and faculty?',opts:[
-      ['No portals — all services in-person',0],['Basic website/form-based requests',2],
+      ['No portals — all services in-person',1],['Basic website/form-based requests',2],
       ['Student portal with limited features',3],['Student + faculty portals',4],
       ['Mobile self-service ecosystem for all stakeholders',5]]},
     {id:'R4',text:'How are repetitive administrative tasks handled?',opts:[
-      ['Fully manual — repeated by staff every time',0],['Macros or scripts for basic tasks',2],
+      ['Fully manual — repeated by staff every time',1],['Macros or scripts for basic tasks',2],
       ['Partial automation in some areas',3],['ERP automation for most routine tasks',4],
       ['RPA (Robotic Process Automation) bots deployed',5]]},
     {id:'R5',text:'How would you describe your IT infrastructure readiness?',opts:[
@@ -646,29 +710,29 @@ const QUESTIONS = {
   ],
   E:[
     {id:'E1',text:'How would you describe your admission processing costs?',opts:[
-      ['High manual cost — many staff in basic tasks',0],['Moderate cost with some inefficiencies',2],
+      ['High manual cost — many staff in basic tasks',1],['Moderate cost with some inefficiencies',2],
       ['Managed costs with room for improvement',3],['Optimised processes with controlled costs',4],
       ['Highly efficient automated admission',5]]},
     {id:'E2',text:'How is student fee collection handled?',opts:[
-      ['Manual cash/cheque with manual ledgers',0],['Bank transfers with manual reconciliation',2],
+      ['Manual cash/cheque with manual ledgers',1],['Bank transfers with manual reconciliation',2],
       ['Online payments with manual tracking',3],['Online payments integrated with finance system',4],
       ['Fully automated fee system with instant reconciliation',5]]},
     {id:'E3',text:'How efficient are your overall administrative operations?',opts:[
-      ['Frequent delays and bottlenecks',0],['Moderate inefficiency — delays common',2],
+      ['Frequent delays and bottlenecks',1],['Moderate inefficiency — delays common',2],
       ['Mostly efficient with some exceptions',3],['Well-optimised with performance monitoring',4],
       ['Highly optimised, data-driven operations',5]]},
     {id:'E4',text:'How well are institutional resources (classrooms, labs, staff) utilised?',opts:[
-      ['Significant underutilisation — no tracking',0],['Manual allocation with some tracking',2],
+      ['Significant underutilisation — no tracking',1],['Manual allocation with some tracking',2],
       ['Managed scheduling with reporting',3],['System-driven resource management',4],
       ['Automated optimisation with utilisation analytics',5]]},
     {id:'E5',text:'How are compliance costs and regulatory penalties managed?',opts:[
-      ['Manual compliance — high risk of penalties',0],['Semi-manual with periodic review',2],
+      ['Manual compliance — high risk of penalties',1],['Semi-manual with periodic review',2],
       ['Managed compliance with some automation',3],['ERP-driven compliance reporting',4],
       ['Automated compliance with zero-penalty track record',5]]},
   ],
   S:[
     {id:'S1',text:'Does your institution have a defined digital transformation strategy?',opts:[
-      ['No formal digital strategy exists',0],['Basic planning discussions only',2],
+      ['No formal digital strategy exists',1],['Basic planning discussions only',2],
       ['Defined strategy for some departments',3],['Institution-wide digital roadmap exists',4],
       ['Comprehensive multi-year digital transformation plan',5]]},
     {id:'S2',text:'How would you describe technology investment at your institution?',opts:[
@@ -676,11 +740,11 @@ const QUESTIONS = {
       ['Moderate — selective planned investments',3],['Strong — annual technology budget allocated',4],
       ['Strategic — technology as core institutional asset',5]]},
     {id:'S3',text:'How is staff digital training and capability building managed?',opts:[
-      ['No formal digital training programs',0],['Occasional training when new systems introduced',2],
+      ['No formal digital training programs',1],['Occasional training when new systems introduced',2],
       ['Regular training programs for key staff',3],['Structured digital training for all staff',4],
       ['Continuous digital capability building with certification',5]]},
     {id:'S4',text:'How would you describe your institution\'s innovation culture?',opts:[
-      ['No innovation programs or initiatives',0],['Limited — few isolated initiatives',2],
+      ['No innovation programs or initiatives',1],['Limited — few isolated initiatives',2],
       ['Active innovation in select departments',3],['Institution-wide innovation initiatives',4],
       ['Innovation-first culture embedded in strategy',5]]},
     {id:'S5',text:'How involved is leadership in technology-driven decisions?',opts:[
@@ -1010,9 +1074,45 @@ function buildLevelInfographic(fi,currentLv) {
 
 // ─── ROI CALCULATOR ───────────────────────────────────────
 function showROI() {
+  populateRoiBanner();
   document.getElementById('roiSection').classList.add('active');
   setTimeout(()=>document.getElementById('roiSection').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
+
+// Renders the FIRE-results banner at the top of the ROI section using the
+// last submitted FIRE assessment (lastFD). If the user opens ROI without a
+// completed FIRE submission, an empty-state hint is shown instead.
+function populateRoiBanner() {
+  const el=document.getElementById('roiFireBanner');
+  if(!el) return;
+  if(!lastFD){
+    el.classList.add('empty');
+    el.style.display='flex';
+    el.innerHTML=`<div><div class="roi-fb-label">FIRE Assessment</div>
+      <div style="font-size:14px;line-height:1.55;max-width:520px;">Complete the FIRE Assessment first for a maturity-weighted ROI projection. Defaults below assume a low-maturity baseline.</div></div>`;
+    return;
+  }
+  el.classList.remove('empty');
+  el.style.display='flex';
+  const total=Number(lastFD.totalRaw||0);
+  const fi=Number(lastFD.fireIndex||0);
+  const headroomPct=Math.max(0,Math.min(100,Math.round((1-total/125)*100)));
+  const pillars=[['F',lastFD.pillarF],['I',lastFD.pillarI],['R',lastFD.pillarR],['E',lastFD.pillarE],['S',lastFD.pillarS]];
+  el.innerHTML=`
+    <div>
+      <div class="roi-fb-label">Your FIRE Index</div>
+      <div class="roi-fb-score">${fi}<small> / 100</small></div>
+      <div style="font-size:11.5px;color:rgba(255,255,255,0.7);margin-top:4px;">${lastFD.category||''}</div>
+    </div>
+    <div class="roi-fb-pillars">
+      ${pillars.map(([k,v])=>`<div class="roi-fb-pill">${k}<b>${v||0}</b><span style="opacity:.6">/25</span></div>`).join('')}
+    </div>
+    <div class="roi-fb-headroom">
+      <div class="v">${headroomPct}%</div>
+      <div class="l">Savings headroom</div>
+    </div>`;
+}
+
 function calcROI() {
   const students=parseInt(document.getElementById('roi_students').value)||5000;
   const faculty=parseInt(document.getElementById('roi_faculty').value)||200;
@@ -1021,65 +1121,98 @@ function calcROI() {
   const sym=curr==='INR'?'₹':'$';
   const conv=curr==='INR'?1:0.012;
 
-  // Based on ROI Excel model (adapted for calculator)
-  const workingDays=90; // per semester
+  // Follow-up answers (refine the Excel model against user context)
+  const admissions=parseInt(document.getElementById('roi_admissions').value)||Math.round(students*0.25);
+  const payrollCr=parseFloat(document.getElementById('roi_payroll').value)||3.5;        // Cr / yr
+  const paperLakh=parseFloat(document.getElementById('roi_paper').value)||2.5;          // L / yr
+  const pace=document.getElementById('roi_pace').value||'standard';
+  const priority=document.getElementById('roi_priority').value||'experience';
+
+  // FIRE-derived per-pillar headroom: 1 = fully manual, ~0.3 = already mature.
+  // Each savings bucket is capped by the headroom of the pillar that drives it.
+  function hr(score){return lastFD?Math.max(0.30,1-(Number(score)||0)/25):1;}
+  const fH=hr(lastFD&&lastFD.pillarF);  // Functional → admissions, timetable, exams, attendance
+  const iH=hr(lastFD&&lastFD.pillarI);  // Information → reporting, dashboards
+  const rH=hr(lastFD&&lastFD.pillarR);  // Automation → surveys, workflows, comms
+  const eH=hr(lastFD&&lastFD.pillarE);  // Economic → fees, paper, library, ops
+  const sH=lastFD?Math.max(0.5,1-(Number(lastFD.pillarS)||0)/25):1; // Strategic → adoption rate ceiling
+
+  // Priority weighting — boost the user's chosen focus by 18%, leave the rest unchanged.
+  const prW={f:1,i:1,r:1,e:1};
+  if(priority==='operations'){prW.f=1.18;prW.r=1.18;}
+  else if(priority==='experience'){prW.f=1.10;prW.i=1.18;}
+  else if(priority==='compliance'){prW.i=1.18;prW.f=1.05;}
+  else if(priority==='cost'){prW.e=1.18;prW.r=1.05;}
+
+  // Calibrate staff & HoD day-cost from declared payroll budget.
+  // Assume admin headcount ≈ faculty * 0.6 (industry rule of thumb), 220 working days.
+  const adminHeads=Math.max(20,Math.round(faculty*0.6));
+  const inrPayroll=payrollCr*1e7;
+  const inrStaffDay=Math.max(1500,Math.round(inrPayroll/adminHeads/220));
+  const inrHodDay=Math.round(inrStaffDay*1.5);
+  const staffDayCost=curr==='INR'?inrStaffDay:Math.round(inrStaffDay*0.012);
+  const hodDayCost  =curr==='INR'?inrHodDay  :Math.round(inrHodDay  *0.012);
+
+  const workingDays=90;
   const coursesPerProg=6;
   const courseSections=programs*coursesPerProg;
 
-  // Teacher productivity savings (per semester, in INR days)
-  const staffDayCost=curr==='INR'?2000:24; // exec staff daily cost
-  const hodDayCost=curr==='INR'?3000:36;
+  // ── Excel-model savings, each weighted by pillar headroom × priority weight ──
+  const attendanceSaving=((7-3)*students*workingDays*5/4/60/8)*staffDayCost     *fH*prW.f;
+  const timetableSaving =((courseSections*workingDays*0.2*10)/2/60/8)*hodDayCost*fH*prW.f;
+  const admissionSaving =((admissions*20)/60/8)*staffDayCost                    *fH*prW.f;
+  const examSaving      =((courseSections*90)/60/8)*staffDayCost                *fH*prW.f;
 
-  // Attendance marking: 7 min manual → 3 min ERP, per lecture
-  const attendanceSaving=((7-3)*students*workingDays*5/4/60/8)*staffDayCost;
-  // Timetable administration
-  const timetableSaving=((courseSections*workingDays*0.2*10)/2/60/8)*hodDayCost;
-  // Online payments & fee collection (10 min → 3 min per student)
-  const feeSaving=(((students*10-students*3)/60)/8)*staffDayCost + 3*staffDayCost*120;
-  // Admission process (40 min → 20 min per applicant, ~20% of students apply)
-  const admissionApplicants=students*0.25;
-  const admissionSaving=((admissionApplicants*20)/60/8)*staffDayCost;
-  // Exam process (180 min → 90 min per section)
-  const examSaving=((courseSections*90)/60/8)*staffDayCost;
-  // Survey/feedback automation
-  const surveyMinSaving=students*3*10*0.5;
-  const surveySaving=(surveyMinSaving/60/8)*staffDayCost;
-  // Paper/material savings
-  const paperSaving=students*2*1+faculty*workingDays*0.5+programs*admissionApplicants*5/programs;
-  // Library manpower reduction (~2 staff)
-  const librarySaving=2*staffDayCost*26*6;
-  // Communication savings (SMS/email replacing manual)
-  const commSaving=students*2*0.13*2; // SMS cost saved
-  // Reporting time savings
-  const reportSaving=(students*15/3/60/8)*hodDayCost + 5*workingDays*10/(60*8)*staffDayCost;
+  const reportSaving    =((students*15/3/60/8)*hodDayCost +
+                          5*workingDays*10/(60*8)*staffDayCost)                 *iH*prW.i;
+
+  const surveySaving    =((students*3*10*0.5)/60/8)*staffDayCost                *rH*prW.r;
+  const commSaving      =students*2*0.13*2                                      *rH*prW.r;
+
+  const feeSaving       =((((students*10-students*3)/60)/8)*staffDayCost +
+                          3*staffDayCost*120)                                   *eH*prW.e;
+  const librarySaving   =2*staffDayCost*26*6                                    *eH*prW.e;
+  // Paper savings come straight from the user's declared spend (in lakhs, INR).
+  const paperSavingINR  =paperLakh*1e5*0.6;  // assume 60% of paper spend is automatable
+  const paperSaving     =(curr==='INR'?paperSavingINR:paperSavingINR*0.012)/2   *eH*prW.e; // halved per semester
 
   const semesterSaving=attendanceSaving+timetableSaving+feeSaving+admissionSaving+examSaving+surveySaving+paperSaving+librarySaving+commSaving+reportSaving;
-  const annualSaving=semesterSaving*2;
+  // Strategic-pillar adoption ceiling: a low S score caps how fast savings are realised.
+  const annualSaving=semesterSaving*2*sH;
 
-  // Investments per year (INR, then convert)
+  // Investments — pace adjusts year-1 implementation effort and ramp.
   const erpAnnual=6000000/conv;
-  const implY1=300000/conv, implY2=implY1*0.6, implY3=implY1*0.5, implY4=implY1*0.4, implY5=implY1*0.2;
   const cloudAnnual=400000/conv;
-  const spocY1=((hodDayCost*2*26)*12)*0.5, spocOther=((hodDayCost*2*26)*12)*0.2;
   const emailAnnual=students*2*2*0.0075/conv;
   const smsAnnual=students*2*2*0.13/conv;
   const gwAnnual=50000/conv;
+
+  const paceCfg={
+    aggressive:{y1:1.4,ramp:[1.0,1.0,1.0,1.0,1.0],   spocY1Mult:0.7},
+    standard:  {y1:1.0,ramp:[0.55,1.0,1.0,1.0,1.0],  spocY1Mult:0.5},
+    phased:    {y1:0.7,ramp:[0.30,0.65,0.95,1.0,1.0],spocY1Mult:0.4}
+  }[pace]||{y1:1.0,ramp:[0.55,1.0,1.0,1.0,1.0],spocY1Mult:0.5};
+
+  const implBase=300000/conv;
+  const implY=[implBase*paceCfg.y1, implBase*0.6, implBase*0.5, implBase*0.4, implBase*0.2];
+  const spocY1=((hodDayCost*2*26)*12)*paceCfg.spocY1Mult;
+  const spocOther=((hodDayCost*2*26)*12)*0.2;
   const overhead=0.10;
 
-  function calcYear(impl,spoc) {
+  function calcYear(impl,spoc,savingMult){
     const base=erpAnnual+impl+cloudAnnual+spoc+emailAnnual+smsAnnual+gwAnnual;
     const inv=base*(1+overhead);
-    const saving=annualSaving;
+    const saving=annualSaving*savingMult;
     const net=saving-inv;
     const roi=(net/inv*100);
     return {inv,saving,net,roi};
   }
   const years=[
-    calcYear(implY1,spocY1),
-    calcYear(implY2,spocOther),
-    calcYear(implY3,spocOther),
-    calcYear(implY4,spocOther),
-    calcYear(implY5,spocOther),
+    calcYear(implY[0],spocY1,    paceCfg.ramp[0]),
+    calcYear(implY[1],spocOther, paceCfg.ramp[1]),
+    calcYear(implY[2],spocOther, paceCfg.ramp[2]),
+    calcYear(implY[3],spocOther, paceCfg.ramp[3]),
+    calcYear(implY[4],spocOther, paceCfg.ramp[4])
   ];
 
   const fmt=(n,s=sym)=>{
@@ -1097,7 +1230,7 @@ function calcROI() {
   const breakEvenYear=years.findIndex(y=>y.net>0)+1;
 
   document.getElementById('roiSummary').innerHTML=`
-    <div class="roi-kpi"><div class="roi-kpi-label">Annual Savings</div><div class="roi-kpi-val">${fmt(annualSaving)}</div><div class="roi-kpi-sub">per year after UniRP</div></div>
+    <div class="roi-kpi"><div class="roi-kpi-label">Steady-state Savings</div><div class="roi-kpi-val">${fmt(annualSaving)}</div><div class="roi-kpi-sub">per year, post adoption</div></div>
     <div class="roi-kpi highlight"><div class="roi-kpi-label">5-Year ROI</div><div class="roi-kpi-val">${cumROI.toFixed(0)}%</div><div class="roi-kpi-sub">Net 5-year return</div></div>
     <div class="roi-kpi"><div class="roi-kpi-label">Break-Even</div><div class="roi-kpi-val">Year ${breakEvenYear||'2+'}</div><div class="roi-kpi-sub">Investment payback</div></div>
   `;
@@ -1110,7 +1243,10 @@ function calcROI() {
      <td class="bold" style="${y.roi>=0?'color:#1a7a52':'color:#c0392b'}">${y.roi.toFixed(1)}%</td></tr>`
   ).join('');
 
-  document.getElementById('roiNote').innerHTML=`<strong>Disclaimer:</strong> These projections are based on industry benchmarks derived from 15+ university implementations. Actual savings vary based on institution size, current process maturity, and implementation scope. This calculator uses the UniRP ROI model considering faculty productivity, administrative efficiency, material cost savings, and operational improvements. Contact us for a customised ROI analysis.`;
+  const fireLine = lastFD
+    ? `Your FIRE Index of <strong>${lastFD.fireIndex}/100</strong> means roughly <strong>${Math.round((1-(lastFD.totalRaw||0)/125)*100)}% headroom</strong> for automation-driven savings; pillar-level scores (F:${lastFD.pillarF}, I:${lastFD.pillarI}, R:${lastFD.pillarR}, E:${lastFD.pillarE}, S:${lastFD.pillarS}) shape how each savings bucket is weighted above.`
+    : `These figures assume a low-maturity baseline. Complete the FIRE Assessment to recalibrate this projection against your institution&apos;s actual digital maturity.`;
+  document.getElementById('roiNote').innerHTML=`<strong>How we got here:</strong> ${fireLine} Your declared payroll (&#8377;${payrollCr} Cr) and paper spend (&#8377;${paperLakh} L) calibrate staff day-cost and material savings; "${pace}" pace adjusts year-1 effort and savings ramp; "${priority}" priority weights the relevant savings bucket by ~18%. Contact us for a board-ready ROI model with line-item attribution.`;
   document.getElementById('roiResults').classList.add('show');
 }
 
