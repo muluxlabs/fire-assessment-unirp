@@ -323,6 +323,10 @@ function buildAuditHtml_(p, premium) {
   }).join('');
 
   function dimSection(dim) {
+    // Each user-uploaded photo is paired with the dimension's sample reference
+    // image (passed in from the client as dim.sample) so the consultant can
+    // compare on-ground reality against the benchmark.
+    var sample = dim.sample || null;
     var items = (dim.items || []).map(function(it){
       var stars = (typeof it.rating === 'number')
         ? ('&#9733;'.repeat(it.rating + 1) + '<span style="color:#d5d5d5">' + '&#9733;'.repeat(4 - it.rating) + '</span>')
@@ -331,13 +335,24 @@ function buildAuditHtml_(p, premium) {
       var photos = (it.photos || []).filter(function(ph){ return ph && ph.dataUrl; });
       var photoHtml = '';
       if (photos.length) {
-        photoHtml = '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">' +
+        photoHtml = '<div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;">' +
           photos.map(function(ph){
-            return '<div style="width:32%;border:1px solid #e0ddd4;border-radius:6px;overflow:hidden;page-break-inside:avoid;">' +
-                     '<img src="' + ph.dataUrl + '" style="display:block;width:100%;height:110px;object-fit:cover;">' +
-                     '<div style="padding:5px 7px;font-size:9.5px;color:#3a3a3a;line-height:1.4;">' +
-                        (ph.desc ? htmlEscape_(ph.desc) : '<em style="color:#a6a6a6">No description.</em>') +
+            var sampleCol = sample && sample.src
+              ? '<div style="width:50%;border-left:1px solid #e0ddd4;">' +
+                  '<div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#8a6a1e;background:#fbf6e8;padding:3px 6px;">Sample reference</div>' +
+                  '<img src="' + sample.src + '" style="display:block;width:100%;height:110px;object-fit:cover;">' +
+                  '<div style="padding:4px 7px;font-size:9px;color:#7a6030;line-height:1.4;font-style:italic;background:#fffaf0;">' + htmlEscape_(sample.caption || '') + '</div>' +
+                '</div>'
+              : '<div style="width:50%;background:#fafafa;display:flex;align-items:center;justify-content:center;font-size:9px;color:#b0b0b0;">No sample.</div>';
+            return '<div style="border:1px solid #e0ddd4;border-radius:6px;overflow:hidden;page-break-inside:avoid;display:flex;">' +
+                     '<div style="width:50%;">' +
+                       '<div style="font-size:8px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#044a3d;background:#e8f5f0;padding:3px 6px;">On-ground photo</div>' +
+                       '<img src="' + ph.dataUrl + '" style="display:block;width:100%;height:110px;object-fit:cover;">' +
+                       '<div style="padding:4px 7px;font-size:9px;color:#3a3a3a;line-height:1.4;">' +
+                          (ph.desc ? htmlEscape_(ph.desc) : '<em style="color:#a6a6a6">No description.</em>') +
+                       '</div>' +
                      '</div>' +
+                     sampleCol +
                    '</div>';
           }).join('') +
         '</div>';
