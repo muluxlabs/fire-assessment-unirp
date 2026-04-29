@@ -175,7 +175,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
 .btn-action.gold{background:linear-gradient(135deg,var(--gold),#b8943a);color:white;box-shadow:0 3px 12px rgba(201,168,76,0.3);}
 .btn-action.gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,0.4);}
 
-/* ── ROI CALCULATOR SECTION ───���─────────────────────────── */
+/* ── ROI CALCULATOR SECTION ───�����─────────────────────────── */
 .roi-section{background:white;border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-top:24px;display:none;animation:fadeSlide 0.4s ease;}
 .roi-section.active{display:block;}
 .roi-header{background:linear-gradient(135deg,#1a3a5c,#2563a0);padding:28px 32px;color:white;}
@@ -402,7 +402,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
         <div class="nav-buttons">
           <button class="btn-back" onclick="prev(1)">&#8592; Back</button>
           <span class="step-counter">Step 2 of 8</span>
-          <button class="btn-next" onclick="next(1)">Start Assessment &#128293;</button>
+          <button class="btn-next" onclick="startAssessment()">Start Assessment &#128293;</button>
         </div>
       </div>
     </div>
@@ -441,7 +441,7 @@ textarea.field-input{resize:vertical;min-height:72px;}
         </div>
 
         <div class="success-box">
-          <p>&#9989; Your assessment has been submitted. <strong>A UniRP consultant will contact you within 24&ndash;48 hours</strong> with a detailed ROI analysis and implementation roadmap.</p>
+          <p>&#9989; Your assessment has been submitted. <strong>A UniRP consultant will reach out following internal approval</strong> with a detailed ROI analysis and implementation roadmap.</p>
           <p style="margin-top:6px;">Questions? Email <strong>mulubrhan.legesse&#64;bloomfieldinnovations.in</strong> &middot; <a href="https://bloomfieldinnovations.in" target="_blank" style="color:var(--dg);font-weight:600;">bloomfieldinnovations.in</a></p>
         </div>
 
@@ -710,6 +710,46 @@ const LEVELS = [
 let curStep = 0;
 const scores = {};
 let lastFD = null;
+let recordId = null;
+const GS_URL = 'https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
+function genRecordId(){
+  if(window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+  return 'fire_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+}
+function collectLeadAndInstitution(){
+  return {
+    firstName:document.getElementById('firstName').value,
+    lastName:document.getElementById('lastName').value,
+    email:document.getElementById('email').value,
+    phone:document.getElementById('phone').value,
+    role:document.getElementById('role').value,
+    department:document.getElementById('dept').value,
+    institutionName:document.getElementById('iName').value,
+    institutionType:document.getElementById('iType').value,
+    studentCount:document.getElementById('students').value,
+    faculty:document.getElementById('faculty').value,
+    programs:document.getElementById('programs').value,
+    city:document.getElementById('city').value,
+    currentERP:document.getElementById('erp').value,
+    goals:document.getElementById('goals').value
+  };
+}
+async function startAssessment(){
+  if(!val1()) return;
+  if(!recordId) recordId = genRecordId();
+  const draft = {
+    type:'FIRE',
+    status:'draft',
+    recordId,
+    timestamp:new Date().toISOString(),
+    ...collectLeadAndInstitution()
+  };
+  // Fire-and-forget: never block the user. Do not await the response (no-cors anyway).
+  try {
+    fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)}).catch(()=>{});
+  } catch(e) { /* silent */ }
+  showStep(2);
+}
 
 // ─── BUILD QUESTION SECTIONS ──────────────────────────────
 function buildSection(sKey, stepIdx) {
@@ -849,8 +889,11 @@ async function submitAssessment() {
     perQ[q.id+'_score']=scores[q.id]!==undefined?scores[q.id]:'';
   });
 
+  if(!recordId) recordId = genRecordId();
   const fd={
     type:'FIRE',
+    status:'completed',
+    recordId,
     timestamp:new Date().toISOString(),
     firstName:document.getElementById('firstName').value,
     lastName:document.getElementById('lastName').value,
@@ -881,8 +924,7 @@ async function submitAssessment() {
   const progVal=document.getElementById('programs').value;
   if(progVal) document.getElementById('roi_programs').value=progVal;
 
-  // Submit to Google Sheets
-  const GS_URL='https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
+  // Submit final FIRE record to Google Sheets (server upserts by recordId, overwriting the draft saved at Start Assessment).
   try {
     await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(fd)});
   } catch(e) {console.log('Sheet:',e.message);}
@@ -930,7 +972,7 @@ function renderResults(fi,ps,fd) {
   if(ps.E<12) steps.push({t:'Reduce Operational Cost Leakage',d:'Integrate fee collection, resource management, and compliance tracking to eliminate revenue loss and penalties.'});
   if(ps.S<12) steps.push({t:'Build a Digital Leadership Framework',d:'Establish digital governance with KPI tracking, annual technology investment planning, and staff training.'});
   if(steps.length===0) steps.push({t:'Advance to Smart Campus Phase',d:'Your institution is well-positioned for AI analytics, predictive insights, and full smart campus transformation.'});
-  steps.push({t:'UniRP Personalised ROI Report',d:`Based on your FIRE Score of ${fi}/100, our team will prepare a detailed ROI analysis for ${fd.institutionName||'your institution'} within 48 hours.`});
+  steps.push({t:'UniRP Personalised ROI Report',d:`Based on your FIRE Score of ${fi}/100, our team will prepare a detailed ROI analysis for ${fd.institutionName||'your institution'}, shared once internal approval is in place.`});
 
   document.getElementById('roadmapContent').innerHTML=steps.map((s,i)=>
     `<div class="roadmap-item"><div class="rd-num">${i+1}</div><div class="rd-text"><strong>${s.t}:</strong> ${s.d}</div></div>`

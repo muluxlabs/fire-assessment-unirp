@@ -83,6 +83,7 @@ function handleFire_(p) {
     'S1','S2','S3','S4','S5'
   ];
   const headers = [
+    'Record ID','Status','Created At','Last Updated',
     'Timestamp','First Name','Last Name','Email','Phone','Role','Department',
     'Institution Name','Institution Type','Student Count','Faculty','Programs',
     'City','Current ERP','Goals',
@@ -92,7 +93,19 @@ function handleFire_(p) {
   ];
   Q_IDS.forEach(id => { headers.push(id + ' - Answer'); headers.push(id + ' - Score'); });
 
+  const status = String(p.status || 'completed').toLowerCase() === 'draft' ? 'Draft' : 'Completed';
+  const isDraft = (status === 'Draft');
+  const recordId = String(p.recordId || '').trim();
+  const nowStamp = nowIso_();
+  const sh = getSheet_(TAB_FIRE, headers);
+  ensureHeaders_(sh, headers);
+
+  // Look up an existing draft for this recordId (created when the user clicked Start Assessment).
+  const existing = recordId ? findRowByRecordId_(sh, recordId) : null;
+  const createdAt = existing ? (existing.row[2] || nowStamp) : nowStamp;
+
   const row = [
+    recordId, status, createdAt, nowStamp,
     nowIso_(p.timestamp),
     p.firstName || '', p.lastName || '', p.email || '', p.phone || '',
     p.role || '', p.department || '',
@@ -107,14 +120,25 @@ function handleFire_(p) {
     row.push(p[id + '_score']  !== undefined ? p[id + '_score']  : '-');
   });
 
-  appendRow_(TAB_FIRE, headers, row);
+  // Pad to header width so every column is filled even when the sheet has been extended.
+  while (row.length < headers.length) row.push('');
 
-  sendNotify_(
-    'FIRE Assessment - ' + (p.institutionName || 'Unknown') +
-    ' - Score: ' + num_(p.fireIndex) + '/100 (' + (p.category || '-') + ')',
-    buildFireEmail_(p)
-  );
-  return json_({ ok: true, type: 'FIRE' });
+  if (existing) {
+    // Overwrite the draft row in place — preserves the original sheet position and createdAt.
+    sh.getRange(existing.rowIndex, 1, 1, row.length).setValues([row]);
+  } else {
+    sh.appendRow(row);
+  }
+
+  // Only email the consultant when the assessment is actually completed; drafts are silent.
+  if (!isDraft) {
+    sendNotify_(
+      'FIRE Assessment - ' + (p.institutionName || 'Unknown') +
+      ' - Score: ' + num_(p.fireIndex) + '/100 (' + (p.category || '-') + ')',
+      buildFireEmail_(p)
+    );
+  }
+  return json_({ ok: true, type: 'FIRE', status: status, recordId: recordId });
 }
 
 // ============================================================
@@ -538,7 +562,43 @@ function dimLine_(v) {
 function appendRow_(name, headers, row) {
   const sh = getSheet_(name, headers);
   sh.appendRow(row);
-}
+  }
+
+  // Make sure every header in `desired` exists in the sheet's header row.
+  // Existing data rows are untouched; missing headers are appended on the right.
+  function ensureHeaders_(sh, desired) {
+  const lastCol = sh.getLastColumn();
+  if (lastCol === 0) {
+  sh.appendRow(desired);
+  sh.setFrozenRows(1);
+  sh.getRange(1, 1, 1, desired.length)
+  .setFontWeight('bold').setBackground('#044a3d').setFontColor('white').setWrap(true);
+  return;
+  }
+  const current = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(String);
+  const missing = desired.filter(h => current.indexOf(h) === -1);
+  if (missing.length) {
+  sh.getRange(1, lastCol + 1, 1, missing.length).setValues([missing])
+  .setFontWeight('bold').setBackground('#044a3d').setFontColor('white').setWrap(true);
+  }
+  }
+
+  // Find a row by Record ID (which lives in column A under the new schema).
+  // Returns { rowIndex, row } or null if not found. rowIndex is 1-based.
+  function findRowByRecordId_(sh, recordId) {
+  if (!recordId) return null;
+  const last = sh.getLastRow();
+  if (last < 2) return null;
+  const ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (let i = 0; i < ids.length; i++) {
+  if (String(ids[i][0]) === recordId) {
+  const colCount = Math.max(sh.getLastColumn(), 1);
+  const row = sh.getRange(i + 2, 1, 1, colCount).getValues()[0];
+  return { rowIndex: i + 2, row: row };
+  }
+  }
+  return null;
+  }
 
 function getSheet_(name, headers) {
   const ss = SpreadsheetApp.openById(SHEET_ID);
