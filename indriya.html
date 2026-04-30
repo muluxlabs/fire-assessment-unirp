@@ -852,20 +852,50 @@ const DIMENSIONS=[
     ]}
 ];
 
-// Sample photo per dimension (one shared visual reference for all items in that dimension).
-// Used by the "View Sample Photo" button on each question and rendered side-by-side
-// with user uploads in the report annex.
+// Per-item sample reference photos. Each question shows its own benchmark image
+// in the "View Sample Photo" lightbox and side-by-side with the user upload in
+// the report annex. Six dimension-level base images (I/E/A/D/R/S.jpg) are
+// reused for the most-thematic item in each dimension to save generation cost.
 const SAMPLE_PHOTOS={
-  I:{src:'assets/samples/I.jpg', caption:'Smart classroom with interactive display, ceiling-mounted Wi-Fi APs and an RFID-enabled entry gate.'},
-  E:{src:'assets/samples/E.jpg', caption:'Self-service admission kiosk, mobile fee payment and a digital queue token system at reception.'},
-  A:{src:'assets/samples/A.jpg', caption:'Paper-based approval registers replaced by a digital approval workflow on a single dashboard.'},
-  D:{src:'assets/samples/D.jpg', caption:'Real-time leadership dashboard with KPIs, enrolment analytics and live charts.'},
-  R:{src:'assets/samples/R.jpg', caption:'Active incubation pods, industry-partner wall and an instrumented placement cell.'},
-  S:{src:'assets/samples/S.jpg', caption:'Rooftop solar, ANPR-equipped smart parking gate and a paperless visitor check-in tablet.'}
+  // Digital Infrastructure
+  I1:{src:'assets/samples/I1.jpg', caption:'Multiple ceiling-mounted enterprise Wi-Fi access points across a corridor; students connected on the move.'},
+  I2:{src:'assets/samples/I.jpg',  caption:'Smart classroom with interactive display, recording capability and integrated lecture-capture setup.'},
+  I3:{src:'assets/samples/I3.jpg', caption:'RFID turnstile and biometric scanner at entry; tap-in confirmations flowing to the attendance system.'},
+  I4:{src:'assets/samples/I4.jpg', caption:'Security control room with a video wall of CCTV feeds and an ANPR overlay at the gate.'},
+  I5:{src:'assets/samples/I5.jpg', caption:'On-prem rack with hybrid-cloud uptime dashboard nearby; redundancy and SLAs visible.'},
+  // Student Experience
+  E1:{src:'assets/samples/E.jpg',  caption:'Self-service admissions kiosk and digital queue tokens replacing manual front-desk processes.'},
+  E2:{src:'assets/samples/E2.jpg', caption:'Student app on a phone showing attendance, timetable, assignments and fees in one place.'},
+  E3:{src:'assets/samples/E3.jpg', caption:'Parent paying fees via UPI; instant receipt printed at the accounts counter.'},
+  E4:{src:'assets/samples/E4.jpg', caption:'Helpdesk staff working a ticketed grievance system with SLA timers visible on screen.'},
+  E5:{src:'assets/samples/E5.jpg', caption:'Parent reviewing attendance, recent test scores and fee status on a parent portal at home.'},
+  // Automation &amp; RPA
+  A1:{src:'assets/samples/A.jpg',  caption:'Paper approval registers replaced by a digital approval workflow on a single dashboard.'},
+  A2:{src:'assets/samples/A2.jpg', caption:'Side-by-side: complex Excel sheet on the left, the same data inside an ERP dashboard on the right.'},
+  A3:{src:'assets/samples/A3.jpg', caption:'Integration architecture wall connecting admissions, finance, HR and academic systems via APIs.'},
+  A4:{src:'assets/samples/A4.jpg', caption:'RPA scheduler dashboard with green job-success indicators for repetitive back-office tasks.'},
+  A5:{src:'assets/samples/A5.jpg', caption:'Lobby self-service kiosk handling transcripts, bonafide letters and hostel requests without admin staff.'},
+  // Data Intelligence
+  D1:{src:'assets/samples/D.jpg',  caption:'Real-time leadership dashboard with KPIs, enrolment analytics and live charts on a wall display.'},
+  D2:{src:'assets/samples/D2.jpg', caption:'Auto-generated daily MIS report with embedded charts replacing manual on-demand compilation.'},
+  D3:{src:'assets/samples/D3.jpg', caption:'Leadership meeting anchored on a live data dashboard rather than gut feel.'},
+  D4:{src:'assets/samples/D4.jpg', caption:'Predictive screen showing dropout-risk heatmap and placement-likelihood gauges.'},
+  D5:{src:'assets/samples/D5.jpg', caption:'Data-governance dashboard with named owners, access policies and a single-source-of-truth diagram.'},
+  // Innovation &amp; Industry
+  R1:{src:'assets/samples/R.jpg',  caption:'Active incubation pods with industry-partner logos and an instrumented placement cell adjacent.'},
+  R2:{src:'assets/samples/R2.jpg', caption:'Industry-partner logo wall with framed signed MoUs and project activity in the corridor.'},
+  R3:{src:'assets/samples/R3.jpg', caption:'Research-output dashboard tracking publications, citations and funded projects.'},
+  R4:{src:'assets/samples/R4.jpg', caption:'Real-time placements dashboard: companies visited, offers made, package ranges and a busy placement cell.'},
+  R5:{src:'assets/samples/R5.jpg', caption:'Structured internship-cell briefing with a cohort list, mentors and credit linkage.'},
+  // Sustainability &amp; Future Readiness
+  S1:{src:'assets/samples/S1.jpg', caption:'Empty filing cabinets, e-signature on a tablet, paperless approvals across admin.'},
+  S2:{src:'assets/samples/S.jpg',  caption:'Rooftop solar, water recycling and measured green initiatives reported regularly.'},
+  S3:{src:'assets/samples/S3.jpg', caption:'ANPR camera at a boom-barrier gate with a digital visitor management tablet at the security desk.'},
+  S4:{src:'assets/samples/S4.jpg', caption:'Live evacuation drill with SOP wall panel and a mass-notification app on a coordinator&apos;s tablet.'},
+  S5:{src:'assets/samples/S5.jpg', caption:'NAAC / NBA / AICTE compliance tracker with status indicators, owners and due dates.'}
 };
 function sampleFor(itemId){
-  const key=String(itemId||'').charAt(0).toUpperCase();
-  return SAMPLE_PHOTOS[key]||null;
+  return SAMPLE_PHOTOS[String(itemId||'')] || null;
 }
 function openSample(itemId){
   const dim=DIMENSIONS.find(d=>d.items.some(it=>it.id===itemId));
@@ -1232,18 +1262,17 @@ function setOverlay(title,msg){
 // rating, remark and photo evidence (data URL + description).
 function buildDimensionsPayload(){
   const visible=unlocked?DIMENSIONS:DIMENSIONS.filter(d=>d.tier==='free');
-  // Resolve sample-photo URLs to absolute URLs so the server-side PDF
-  // renderer (Apps Script's HTML->PDF) can fetch them.
-  const sampleAbs={};
-  Object.keys(SAMPLE_PHOTOS).forEach(k=>{
-    try{ sampleAbs[k]={src:new URL(SAMPLE_PHOTOS[k].src,window.location.href).href, caption:SAMPLE_PHOTOS[k].caption}; }
-    catch(_){ sampleAbs[k]=SAMPLE_PHOTOS[k]; }
-  });
+  // Resolve sample-photo URLs to absolute URLs (per-item) so the server-side
+  // PDF renderer (Apps Script's HTML->PDF) can fetch them.
+  function absSample(itemId){
+    const s=SAMPLE_PHOTOS[itemId]; if(!s) return null;
+    try{ return {src:new URL(s.src,window.location.href).href, caption:s.caption}; }
+    catch(_){ return {src:s.src, caption:s.caption}; }
+  }
   return visible.map(dim=>({
     key:dim.key,
     name:stripTags(dim.name),
     tier:dim.tier,
-    sample:sampleAbs[dim.key]||null,
     items:dim.items.map(it=>({
       id:it.id,
       title:stripTags(it.title),
@@ -1251,6 +1280,7 @@ function buildDimensionsPayload(){
       rating:(it.id in ratings)?ratings[it.id]:null,
       ratingLabel:ratingLabelFor(ratings[it.id]),
       remark:remarks[it.id]||'',
+      sample:absSample(it.id),
       photos:(photos[it.id]||[]).map(p=>({
         dataUrl:p.dataUrl||'',
         desc:p.desc||''
@@ -1502,7 +1532,7 @@ function buildPrintArea(r,lv,roadmap){
       <div style="background:#f2faf7;padding:14px 32px;border-bottom:1px solid #d4e8e0;">
         <div style="font-size:11.5px;color:#3a5248;line-height:1.7;">
           <strong style="color:#044a3d;">Auditor:</strong> ${escapeHtml(ctx.audName||'—')} &mdash; ${escapeHtml(ctx.audRole||'')} &nbsp;|&nbsp;
-          <strong style="color:#044a3d;">Email:</strong> ${escapeHtml(ctx.audEmail||'—')}
+          <strong style="color:#044a3d;">Email:</strong> ${escapeHtml(ctx.audEmail||'���')}
           ${ctx.audPhone?' &nbsp;|&nbsp; <strong style="color:#044a3d;">Phone:</strong> '+escapeHtml(ctx.audPhone):''}
           ${ctx.audContext?'<br><strong style="color:#044a3d;">Focus:</strong> '+escapeHtml(ctx.audContext):''}
         </div>

@@ -323,11 +323,11 @@ function buildAuditHtml_(p, premium) {
   }).join('');
 
   function dimSection(dim) {
-    // Each user-uploaded photo is paired with the dimension's sample reference
-    // image (passed in from the client as dim.sample) so the consultant can
-    // compare on-ground reality against the benchmark.
-    var sample = dim.sample || null;
+    // Each user-uploaded photo is paired with the item-level sample reference
+    // (passed in from the client as it.sample) so the consultant can compare
+    // on-ground reality against the benchmark for that specific question.
     var items = (dim.items || []).map(function(it){
+      var sample = it.sample || null;
       var stars = (typeof it.rating === 'number')
         ? ('&#9733;'.repeat(it.rating + 1) + '<span style="color:#d5d5d5">' + '&#9733;'.repeat(4 - it.rating) + '</span>')
         : '<span style="color:#b7b7b7">(not rated)</span>';
