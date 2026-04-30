@@ -181,6 +181,21 @@ img{max-width:100%;display:block;}
 .photo-thumb .pt-del{position:absolute;top:3px;right:3px;background:rgba(12,42,36,0.85);color:white;border:none;width:18px;height:18px;border-radius:50%;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
 .photo-warn{font-size:11px;color:#8a5520;background:#fef6e9;border:1px solid #f0e2c5;border-radius:6px;padding:6px 9px;margin-top:7px;line-height:1.5;display:none;}
 .photo-warn.show{display:block;}
+.photo-actions{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.btn-sample{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--bd);background:white;color:var(--mg);font-size:11.5px;font-weight:500;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;line-height:1.2;transition:all 0.18s;letter-spacing:0.2px;}
+.btn-sample:hover{border-color:var(--mg);background:var(--lg);color:var(--dg);}
+.btn-sample-icon{font-size:13px;}
+.sample-modal{position:fixed;inset:0;background:rgba(4,30,24,0.78);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px;animation:fade 0.2s ease;}
+.sample-modal.open{display:flex;}
+.sample-modal-card{background:white;border-radius:14px;max-width:720px;width:100%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,0.4);}
+.sample-modal-head{padding:16px 22px;background:linear-gradient(135deg,var(--dg),var(--mg));color:white;display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.sample-modal-head h3{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin:0;line-height:1.2;}
+.sample-modal-head .sm-sub{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-top:2px;}
+.sample-modal-close{background:rgba(255,255,255,0.12);border:none;color:white;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.sample-modal-close:hover{background:rgba(255,255,255,0.22);}
+.sample-modal-body{padding:0;background:#f5f5f0;display:flex;align-items:center;justify-content:center;overflow:auto;}
+.sample-modal-body img{width:100%;height:auto;max-height:62vh;object-fit:contain;display:block;}
+.sample-modal-foot{padding:12px 22px;font-size:12px;color:var(--tm);background:white;border-top:1px solid var(--bd);line-height:1.55;}
 
 /* ── NAV BUTTONS ────────────────────────────────────────── */
 .nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:28px;padding-top:22px;border-top:1px solid var(--bd);gap:10px;flex-wrap:wrap;}
@@ -622,8 +637,8 @@ textarea.field-input{resize:vertical;min-height:60px;}
         <div class="field-group" id="fg-audName"><label class="field-label">Your name <span>*</span></label><input class="field-input" id="audName" placeholder="Full name"><div class="error-msg">Required</div></div>
         <div class="field-group" id="fg-audRole"><label class="field-label">Your role <span>*</span></label>
           <select class="field-input" id="audRole">
-            <option value="">Select role</option>
-            <option>Vice Chancellor</option><option>Registrar</option><option>Director / Principal</option><option>Dean</option><option>IT Head</option><option>Admissions Head</option><option>Finance Officer</option><option>NAAC / Accreditation Coordinator</option><option>UniRP Consultant</option><option>Other Leadership</option>
+              <option value="">Select role</option>
+              <option>Manager</option><option>Project Manager</option><option>Sr. Manager</option><option>AVP</option><option>Consultant</option>
           </select><div class="error-msg">Required</div>
         </div>
       </div>
@@ -837,6 +852,65 @@ const DIMENSIONS=[
     ]}
 ];
 
+// Per-item sample reference photos. Each question shows its own benchmark image
+// in the "View Sample Photo" lightbox and side-by-side with the user upload in
+// the report annex. Six dimension-level base images (I/E/A/D/R/S.jpg) are
+// reused for the most-thematic item in each dimension to save generation cost.
+const SAMPLE_PHOTOS={
+  // Digital Infrastructure
+  I1:{src:'assets/samples/I1.jpg', caption:'Multiple ceiling-mounted enterprise Wi-Fi access points across a corridor; students connected on the move.'},
+  I2:{src:'assets/samples/I.jpg',  caption:'Smart classroom with interactive display, recording capability and integrated lecture-capture setup.'},
+  I3:{src:'assets/samples/I3.jpg', caption:'RFID turnstile and biometric scanner at entry; tap-in confirmations flowing to the attendance system.'},
+  I4:{src:'assets/samples/I4.jpg', caption:'Security control room with a video wall of CCTV feeds and an ANPR overlay at the gate.'},
+  I5:{src:'assets/samples/I5.jpg', caption:'On-prem rack with hybrid-cloud uptime dashboard nearby; redundancy and SLAs visible.'},
+  // Student Experience
+  E1:{src:'assets/samples/E.jpg',  caption:'Self-service admissions kiosk and digital queue tokens replacing manual front-desk processes.'},
+  E2:{src:'assets/samples/E2.jpg', caption:'Student app on a phone showing attendance, timetable, assignments and fees in one place.'},
+  E3:{src:'assets/samples/E3.jpg', caption:'Parent paying fees via UPI; instant receipt printed at the accounts counter.'},
+  E4:{src:'assets/samples/E4.jpg', caption:'Helpdesk staff working a ticketed grievance system with SLA timers visible on screen.'},
+  E5:{src:'assets/samples/E5.jpg', caption:'Parent reviewing attendance, recent test scores and fee status on a parent portal at home.'},
+  // Automation &amp; RPA
+  A1:{src:'assets/samples/A.jpg',  caption:'Paper approval registers replaced by a digital approval workflow on a single dashboard.'},
+  A2:{src:'assets/samples/A2.jpg', caption:'Side-by-side: complex Excel sheet on the left, the same data inside an ERP dashboard on the right.'},
+  A3:{src:'assets/samples/A3.jpg', caption:'Integration architecture wall connecting admissions, finance, HR and academic systems via APIs.'},
+  A4:{src:'assets/samples/A4.jpg', caption:'RPA scheduler dashboard with green job-success indicators for repetitive back-office tasks.'},
+  A5:{src:'assets/samples/A5.jpg', caption:'Lobby self-service kiosk handling transcripts, bonafide letters and hostel requests without admin staff.'},
+  // Data Intelligence
+  D1:{src:'assets/samples/D.jpg',  caption:'Real-time leadership dashboard with KPIs, enrolment analytics and live charts on a wall display.'},
+  D2:{src:'assets/samples/D2.jpg', caption:'Auto-generated daily MIS report with embedded charts replacing manual on-demand compilation.'},
+  D3:{src:'assets/samples/D3.jpg', caption:'Leadership meeting anchored on a live data dashboard rather than gut feel.'},
+  D4:{src:'assets/samples/D4.jpg', caption:'Predictive screen showing dropout-risk heatmap and placement-likelihood gauges.'},
+  D5:{src:'assets/samples/D5.jpg', caption:'Data-governance dashboard with named owners, access policies and a single-source-of-truth diagram.'},
+  // Innovation &amp; Industry
+  R1:{src:'assets/samples/R.jpg',  caption:'Active incubation pods with industry-partner logos and an instrumented placement cell adjacent.'},
+  R2:{src:'assets/samples/R2.jpg', caption:'Industry-partner logo wall with framed signed MoUs and project activity in the corridor.'},
+  R3:{src:'assets/samples/R3.jpg', caption:'Research-output dashboard tracking publications, citations and funded projects.'},
+  R4:{src:'assets/samples/R4.jpg', caption:'Real-time placements dashboard: companies visited, offers made, package ranges and a busy placement cell.'},
+  R5:{src:'assets/samples/R5.jpg', caption:'Structured internship-cell briefing with a cohort list, mentors and credit linkage.'},
+  // Sustainability &amp; Future Readiness
+  S1:{src:'assets/samples/S1.jpg', caption:'Empty filing cabinets, e-signature on a tablet, paperless approvals across admin.'},
+  S2:{src:'assets/samples/S.jpg',  caption:'Rooftop solar, water recycling and measured green initiatives reported regularly.'},
+  S3:{src:'assets/samples/S3.jpg', caption:'ANPR camera at a boom-barrier gate with a digital visitor management tablet at the security desk.'},
+  S4:{src:'assets/samples/S4.jpg', caption:'Live evacuation drill with SOP wall panel and a mass-notification app on a coordinator&apos;s tablet.'},
+  S5:{src:'assets/samples/S5.jpg', caption:'NAAC / NBA / AICTE compliance tracker with status indicators, owners and due dates.'}
+};
+function sampleFor(itemId){
+  return SAMPLE_PHOTOS[String(itemId||'')] || null;
+}
+function openSample(itemId){
+  const dim=DIMENSIONS.find(d=>d.items.some(it=>it.id===itemId));
+  const item=dim&&dim.items.find(it=>it.id===itemId);
+  const s=sampleFor(itemId);
+  if(!s||!dim||!item) return;
+  document.getElementById('sampleModalTitle').textContent=stripTags(item.title);
+  document.getElementById('sampleModalSub').textContent=stripTags(dim.name)+' &middot; reference image';
+  document.getElementById('sampleModalImg').src=s.src;
+  document.getElementById('sampleModalImg').alt='Sample reference photo for '+stripTags(item.title);
+  document.getElementById('sampleModalCaption').textContent=s.caption;
+  document.getElementById('sampleModal').classList.add('open');
+}
+function closeSample(){document.getElementById('sampleModal').classList.remove('open');}
+
 const MATURITY=[
   {key:'critical',label:'Critical Risk',color:'#c0392b',max:40,desc:'Significant digital gaps across most dimensions. Immediate intervention required to stabilise core operations.'},
   {key:'emerging',label:'Emerging',color:'#d97c2b',max:60,desc:'Basic digital systems in place but fragmented. Inconsistent data and heavy dependency on manual workarounds.'},
@@ -946,14 +1020,19 @@ function renderItem(dimKey,item,num){
     <div class="q-err-msg">Please select a rating based on what you observed on-ground.</div>
     <div class="remark-row">
       <div class="remark-label">Remarks / observation</div>
-      <textarea class="remark-input" placeholder="What did you see or hear on-ground? e.g. 3 of 12 classrooms have interactive displays; rest have projectors only." oninput="remarks['${item.id}']=this.value"></textarea>
+              <textarea class="remark-input" placeholder="What did you see or hear on-ground?" oninput="remarks['${item.id}']=this.value"></textarea>
     </div>
-    <div class="photo-row">
-      <label class="photo-drop">
-        <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotos(event,'${item.id}')">
-        <span class="photo-drop-icon">&#128247;</span>
-        <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
-      </label>
+            <div class="photo-row">
+              <div class="photo-actions">
+                <label class="photo-drop">
+                  <input type="file" accept="image/*" capture="environment" multiple onchange="handlePhotos(event,'${item.id}')">
+                  <span class="photo-drop-icon">&#128247;</span>
+                  <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
+                </label>
+                <button type="button" class="btn-sample" onclick="openSample('${item.id}')" title="See what to look for on-ground">
+                  <span class="btn-sample-icon">&#128065;</span><span>View Sample Photo</span>
+                </button>
+              </div>
       <div class="photo-previews" id="prev-${item.id}"></div>
       <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
     </div>
@@ -1183,6 +1262,13 @@ function setOverlay(title,msg){
 // rating, remark and photo evidence (data URL + description).
 function buildDimensionsPayload(){
   const visible=unlocked?DIMENSIONS:DIMENSIONS.filter(d=>d.tier==='free');
+  // Resolve sample-photo URLs to absolute URLs (per-item) so the server-side
+  // PDF renderer (Apps Script's HTML->PDF) can fetch them.
+  function absSample(itemId){
+    const s=SAMPLE_PHOTOS[itemId]; if(!s) return null;
+    try{ return {src:new URL(s.src,window.location.href).href, caption:s.caption}; }
+    catch(_){ return {src:s.src, caption:s.caption}; }
+  }
   return visible.map(dim=>({
     key:dim.key,
     name:stripTags(dim.name),
@@ -1194,6 +1280,7 @@ function buildDimensionsPayload(){
       rating:(it.id in ratings)?ratings[it.id]:null,
       ratingLabel:ratingLabelFor(ratings[it.id]),
       remark:remarks[it.id]||'',
+      sample:absSample(it.id),
       photos:(photos[it.id]||[]).map(p=>({
         dataUrl:p.dataUrl||'',
         desc:p.desc||''
@@ -1369,20 +1456,33 @@ function buildPrintArea(r,lv,roadmap){
     </tr>`;
   })).join('');
 
-  // Photo annex
+  // Photo annex — each user-uploaded photo is rendered side-by-side with the
+  // dimension's sample reference photo so the consultant can quickly compare
+  // on-ground reality against the benchmark.
   let photoHtml='';
   Object.entries(photos).forEach(([id,arr])=>{
     if(!arr||!arr.length)return;
     const dim=DIMENSIONS.find(d=>d.items.some(it=>it.id===id));
     const it=dim&&dim.items.find(x=>x.id===id);
     if(!dim||!it)return;
+    const sample=sampleFor(id);
     arr.forEach((p,i)=>{
       photoHtml+=`<div style="break-inside:avoid;page-break-inside:avoid;margin-bottom:16px;border:1px solid #d4e8e0;border-radius:8px;overflow:hidden;">
-        <img src="${p.dataUrl}" alt="Evidence ${id} #${i+1}" style="width:100%;max-height:320px;object-fit:cover;display:block;">
-        <div style="padding:10px 14px;background:#f2faf7;border-top:1px solid #d4e8e0;">
+        <div style="padding:10px 14px;background:#f2faf7;border-bottom:1px solid #d4e8e0;">
           <div style="font-size:10.5px;color:#7a9590;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;margin-bottom:3px;">${dim.name.replace(/&amp;/g,'&')} &middot; ${it.id}</div>
-          <div style="font-size:12.5px;color:#0f1f1a;font-weight:600;margin-bottom:4px;">${it.title.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&')}</div>
-          <div style="font-size:11.5px;color:#3a5248;line-height:1.55;"><strong style="color:#044a3d;">Auditor note:</strong> ${p.desc?escapeHtml(p.desc):'<em style="color:#b0c0b7">No description provided.</em>'}</div>
+          <div style="font-size:12.5px;color:#0f1f1a;font-weight:600;">${it.title.replace(/<[^>]*>/g,'').replace(/&amp;/g,'&')}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+          <div style="border-right:1px solid #d4e8e0;">
+            <div style="font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:#044a3d;background:#e8f5f0;padding:5px 10px;">On-ground photo</div>
+            <img src="${p.dataUrl}" alt="Evidence ${id} #${i+1}" style="width:100%;height:200px;object-fit:cover;display:block;">
+            <div style="padding:8px 12px;font-size:11px;color:#3a5248;line-height:1.5;background:white;"><strong style="color:#044a3d;">Auditor note:</strong> ${p.desc?escapeHtml(p.desc):'<em style="color:#b0c0b7">No description provided.</em>'}</div>
+          </div>
+          <div>
+            <div style="font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:#8a6a1e;background:#fbf6e8;padding:5px 10px;">Sample reference</div>
+            ${sample?`<img src="${sample.src}" alt="Sample reference for ${stripTags(it.title)}" style="width:100%;height:200px;object-fit:cover;display:block;">
+            <div style="padding:8px 12px;font-size:11px;color:#7a6030;line-height:1.5;background:#fffaf0;font-style:italic;">${escapeHtml(sample.caption)}</div>`:'<div style="padding:30px 12px;text-align:center;color:#b0c0b7;font-size:11px;">No sample available.</div>'}
+          </div>
         </div>
       </div>`;
     });
@@ -1432,7 +1532,7 @@ function buildPrintArea(r,lv,roadmap){
       <div style="background:#f2faf7;padding:14px 32px;border-bottom:1px solid #d4e8e0;">
         <div style="font-size:11.5px;color:#3a5248;line-height:1.7;">
           <strong style="color:#044a3d;">Auditor:</strong> ${escapeHtml(ctx.audName||'—')} &mdash; ${escapeHtml(ctx.audRole||'')} &nbsp;|&nbsp;
-          <strong style="color:#044a3d;">Email:</strong> ${escapeHtml(ctx.audEmail||'—')}
+          <strong style="color:#044a3d;">Email:</strong> ${escapeHtml(ctx.audEmail||'���')}
           ${ctx.audPhone?' &nbsp;|&nbsp; <strong style="color:#044a3d;">Phone:</strong> '+escapeHtml(ctx.audPhone):''}
           ${ctx.audContext?'<br><strong style="color:#044a3d;">Focus:</strong> '+escapeHtml(ctx.audContext):''}
         </div>
@@ -1515,5 +1615,19 @@ function printReport(){
 renderAuditSections();
 renderProgress();
 </script>
+<!-- Sample-photo modal: opened by the "View Sample Photo" button under each question -->
+<div class="sample-modal" id="sampleModal" role="dialog" aria-modal="true" aria-labelledby="sampleModalTitle" onclick="if(event.target===this)closeSample()">
+  <div class="sample-modal-card">
+    <div class="sample-modal-head">
+      <div>
+        <h3 id="sampleModalTitle">Sample reference</h3>
+        <div class="sm-sub" id="sampleModalSub">Reference image</div>
+      </div>
+      <button type="button" class="sample-modal-close" onclick="closeSample()" aria-label="Close sample">&times;</button>
+    </div>
+    <div class="sample-modal-body"><img id="sampleModalImg" src="" alt=""></div>
+    <div class="sample-modal-foot" id="sampleModalCaption">&nbsp;</div>
+  </div>
+</div>
 </body>
 </html>
