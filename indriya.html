@@ -223,6 +223,15 @@ textarea.field-input{resize:vertical;min-height:60px;}
 .error-msg{color:#c0392b;font-size:11.5px;display:none;}
 .field-group.error .field-input{border-color:#e05252;}
 .field-group.error .error-msg{display:block;}
+.field-hint{font-size:11.5px;color:var(--tl);margin-top:6px;line-height:1.55;}
+
+/* OTP gate */
+.otp-input{font-family:'Cormorant Garamond',serif;font-size:26px;letter-spacing:14px;text-align:center;font-weight:700;padding:14px 13px;}
+.auth-status{background:var(--lg);border:1px solid var(--bd);border-radius:9px;padding:11px 14px;font-size:13px;color:var(--tm);margin-bottom:18px;line-height:1.55;}
+.auth-status strong{color:var(--dg);}
+#lnkResend{color:var(--mg);text-decoration:none;border-bottom:1px dashed var(--mg);}
+#lnkResend:hover{color:var(--dg);border-bottom-color:var(--dg);}
+button.btn-next:disabled,button.btn-back:disabled{opacity:0.55;cursor:wait;}
 .q-err{animation:shake 0.4s ease;}
 @keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
 .q-err-msg{color:#c0392b;font-size:11.5px;font-weight:600;margin-top:8px;margin-left:34px;padding:6px 10px;background:#fdf0ef;border-radius:6px;border-left:3px solid #c0392b;display:none;}
@@ -450,9 +459,9 @@ textarea.field-input{resize:vertical;min-height:60px;}
 
   <!-- DIMENSIONS -->
   <section class="dim-section">
-    <p class="section-kicker">Six Audit Dimensions</p>
+    <p class="section-kicker">Seven Audit Dimensions</p>
     <h2 class="section-heading">What INDRIYA measures</h2>
-    <p class="section-intro">The first four dimensions focus on technical and ERP readiness &mdash; free to complete online. The final two, mapped to NAAC/NBA advanced academic audit, require registration and are reviewed by our senior consultants.</p>
+    <p class="section-intro">The first four dimensions focus on technical and ERP readiness &mdash; free to complete online. The final three, mapped to NAAC/NBA advanced academic audit and institutional commitment, require registration and are reviewed by our senior consultants.</p>
     <div class="dim-grid">
       <div class="dim-card free">
         <span class="dim-tag">Free Tier</span>
@@ -495,6 +504,13 @@ textarea.field-input{resize:vertical;min-height:60px;}
         <div class="dim-score">Dimension 6 &middot; /20</div>
         <div class="dim-title">Sustainability &amp; Future Readiness</div>
         <p class="dim-desc">Paperless operations, green initiatives, smart security, emergency systems.</p>
+      </div>
+      <div class="dim-card premium">
+        <span class="dim-tag">Premium</span>
+        <div class="dim-icon">C</div>
+        <div class="dim-score">Dimension 7 &middot; /20</div>
+        <div class="dim-title">Smart Campus Readiness &amp; Adoption</div>
+        <p class="dim-desc">Leadership sponsorship, budget commitment, vendor dependencies, change readiness, governance integrity.</p>
       </div>
     </div>
   </section>
@@ -602,6 +618,52 @@ textarea.field-input{resize:vertical;min-height:60px;}
 <!-- ─── AUDIT ────────────────────────────────────────── -->
 <main class="audit-wrap" id="auditWrap">
 
+  <!-- AUTH GATE (shown before sec0 if the user has no valid session token) -->
+  <section class="section-card" id="secAuth" style="display:none;">
+    <header class="section-head">
+      <div class="section-head-inner">
+        <span class="section-tag" style="background:#fbf6e8;color:#8d6f22;">&#128274; Team access</span>
+        <h2 class="section-title">Bloomfield Innovations consultant access</h2>
+        <p class="section-sub">INDRIYA audits are administered by the Bloomfield Innovations consulting team. Please verify your work email address to start a new audit. A one-time code will be emailed to you.</p>
+      </div>
+    </header>
+    <div class="section-body">
+
+      <div id="authStep1">
+        <div class="form-row single">
+          <div class="field-group" id="fg-authEmail">
+            <label class="field-label">Bloomfield Innovations work email <span>*</span></label>
+            <input class="field-input" id="authEmail" type="email" autocomplete="email" placeholder="you@bloomfieldinnovations.in">
+            <div class="error-msg" id="authEmailErr">Access is restricted to &commat;bloomfieldinnovations.in email addresses.</div>
+            <p class="field-hint">We&apos;ll send a 6-digit code to this address. The code is valid for 10 minutes.</p>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="backToLanding()">&larr; Back to overview</button>
+          <span class="step-counter">Verification required</span>
+          <button class="btn-next" id="btnSendOtp" onclick="requestOtp(false)">Send verification code &rarr;</button>
+        </div>
+      </div>
+
+      <div id="authStep2" style="display:none;">
+        <div class="auth-status" id="authStatus"></div>
+        <div class="form-row single">
+          <div class="field-group" id="fg-authOtp">
+            <label class="field-label">Enter the 6-digit code <span>*</span></label>
+            <input class="field-input otp-input" id="authOtp" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456" onkeydown="if(event.key==='Enter')verifyOtp()">
+            <div class="error-msg" id="authOtpErr">Please enter the 6-digit code from your email.</div>
+          </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="btn-back" onclick="resetAuth()">&larr; Use a different email</button>
+          <span class="step-counter"><a href="#" id="lnkResend" onclick="requestOtp(true);return false;">Resend code</a></span>
+          <button class="btn-next" id="btnVerifyOtp" onclick="verifyOtp()">Verify &amp; continue &rarr;</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- STEP 0: Institution + auditor -->
   <section class="section-card" id="sec0">
     <header class="section-head">
@@ -669,7 +731,7 @@ textarea.field-input{resize:vertical;min-height:60px;}
       <div class="gate-head-inner">
         <div class="gate-icon" aria-hidden="true">&#127919;</div>
         <h2 class="gate-title">Technical audit complete. What next?</h2>
-        <p class="gate-sub">You&apos;ve finished the four Technical &amp; ERP dimensions. You can either receive your free report now, or continue into the two NAAC/NBA-aligned dimensions and get a complete Smart Campus audit.</p>
+        <p class="gate-sub">You&apos;ve finished the four Technical &amp; ERP dimensions. You can either receive your free report now, or continue into the three premium dimensions (NAAC/NBA-aligned plus institutional readiness) and get a complete Smart Campus audit.</p>
       </div>
     </header>
     <div class="gate-body">
@@ -680,7 +742,7 @@ textarea.field-input{resize:vertical;min-height:60px;}
           <div class="choice-title">Generate my free report</div>
           <div class="choice-sub">Receive a branded PDF of Dimensions 1&ndash;4 with all your observations and photo evidence embedded.</div>
           <ul class="choice-points">
-            <li>Scorecard on 4 of 6 dimensions (/80)</li>
+            <li>Scorecard on 4 of 7 dimensions (/80)</li>
             <li>Radar chart &amp; maturity indicator</li>
             <li>Photo evidence annex</li>
             <li>Roadmap from Bloomfield Innovations</li>
@@ -691,12 +753,12 @@ textarea.field-input{resize:vertical;min-height:60px;}
         <article class="choice-card premium">
           <div class="choice-tag">Recommended</div>
           <div class="choice-title">Continue to premium assessment</div>
-          <div class="choice-sub">Add the two accreditation-grade dimensions &mdash; Innovation &amp; Industry, Sustainability &amp; Future Readiness &mdash; and get a complete INDRIYA audit.</div>
+          <div class="choice-sub">Add the three accreditation- &amp; commitment-grade dimensions &mdash; Innovation &amp; Industry, Sustainability &amp; Future Readiness, and Smart Campus Readiness &amp; Adoption &mdash; for a complete INDRIYA audit.</div>
           <ul class="choice-points">
-            <li>Full /120 INDRIYA Index</li>
+            <li>Full /140 INDRIYA Index</li>
             <li>NAAC/NBA aligned scoring</li>
-            <li>Priority consultant follow-up within 48 hrs</li>
-            <li>Same report &mdash; no re-registration needed</li>
+            <li>Adoption-risk &amp; governance read-out</li>
+            <li>Priority consultant follow-up after internal approval</li>
           </ul>
           <button class="btn-choice solid" onclick="continueToPremium()">Continue to premium &rarr;</button>
         </article>
@@ -707,15 +769,16 @@ textarea.field-input{resize:vertical;min-height:60px;}
 
       <div class="nav-buttons" style="margin-top:18px;">
         <button class="btn-back" onclick="prev(5)">&larr; Back to Dimension 4</button>
-        <span class="step-counter">Step 5 of 8 &middot; choose your path</span>
+        <span class="step-counter">Choose your path</span>
         <span></span>
       </div>
     </div>
   </section>
 
-  <!-- STEPS 6-7: PREMIUM -->
+  <!-- STEPS 6-8: PREMIUM (Innovation, Sustainability, Readiness) -->
   <section class="section-card" id="sec5"></section>
   <section class="section-card" id="sec6"></section>
+  <section class="section-card" id="sec7"></section>
 
   <!-- RESULTS -->
   <section class="results-card" id="secResults">
@@ -725,7 +788,7 @@ textarea.field-input{resize:vertical;min-height:60px;}
         <p class="r-sub">Institutional Digital Readiness &amp; Intelligent Yield Assessment</p>
         <div class="score-circle">
           <div class="score-number" id="scoreNum">--</div>
-          <div class="score-total">out of <span id="scoreMax">120</span></div>
+          <div class="score-total">out of <span id="scoreMax">140</span></div>
           <div class="score-lbl">INDRIYA Index</div>
         </div>
         <div class="score-cat" id="scoreCat">Calculating&hellip;</div>
@@ -738,7 +801,7 @@ textarea.field-input{resize:vertical;min-height:60px;}
       </div>
 
       <div class="radar-wrap">
-        <div class="radar-title">Your INDRIYA profile &mdash; 6 dimensions</div>
+        <div class="radar-title">Your INDRIYA profile &mdash; 7 dimensions</div>
         <div class="radar-canvas-wrap"><canvas id="radar"></canvas></div>
       </div>
 
@@ -849,6 +912,15 @@ const DIMENSIONS=[
       {id:'S3',title:'Smart parking &amp; security',hint:'ANPR, visitor workflow, integrated CCTV, panic alerts.'},
       {id:'S4',title:'Emergency &amp; risk preparedness',hint:'Drills, SOPs, mass notification tools, integrated response.'},
       {id:'S5',title:'Digital compliance tracking',hint:'NAAC / NBA / UGC / AICTE requirements tracked digitally with owners.'}
+    ]},
+  {key:'C',name:'Smart Campus Readiness &amp; Adoption',icon:'C',tag:'Premium &middot; Readiness',tagClass:'premium',tier:'premium',
+    sub:'Many institutions need a Smart Campus &mdash; not all are ready to commit. This dimension stress-tests sponsorship, budget reality, vendor dependencies, change capability and governance integrity, so the consultant team can flag adoption risk before mobilising.',
+    items:[
+      {id:'C1',title:'Executive sponsorship &amp; decision authority',hint:'Is there a single named senior sponsor (VC / Registrar / Director) with a clear mandate and decision rights &mdash; or fragmented, contested ownership across departments?'},
+      {id:'C2',title:'Budget commitment &amp; funding clarity',hint:'Is approved capital and recurring opex available? Is the multi-year financial commitment visible in board minutes / budget documents, or still subject to ad-hoc approvals?'},
+      {id:'C3',title:'Existing system dependencies &amp; vendor lock-in',hint:'How constrained is the institution by legacy ERP, finance or HR contracts? Are exit terms, data ownership and integration paths documented and de-risked?'},
+      {id:'C4',title:'Change readiness &amp; staff capability',hint:'Will faculty, admin staff and operations teams actually adopt new systems? Is there a training plan, a network of digital champions, and a clear communication cadence?'},
+      {id:'C5',title:'Governance, transparency &amp; procurement integrity',hint:'Are procurement, decision audit trails and conflict-of-interest checks robust? What is the risk of project derailment due to political, governance or process-integrity issues?'}
     ]}
 ];
 
@@ -922,9 +994,12 @@ const MATURITY=[
 // ==========================================================
 // State
 // ==========================================================
-const STEPS=['sec0','sec1','sec2','sec3','sec4','secGate','sec5','sec6','secResults'];
-const STEP_LABELS=['Context','Infrastructure','Experience','Automation','Data','Choose path','Innovation','Sustainability','Results'];
-const STEP_TIERS=['free','free','free','free','free','free','premium','premium','results'];
+// 10 logical steps: 1 context, 4 free dims, gate, 3 premium dims, results.
+// Indices used elsewhere (showStep / next / goTo / validateDimension) MUST
+// match this order. Premium dim 7 ("Readiness & Adoption") is sec7 / idx 8.
+const STEPS=['sec0','sec1','sec2','sec3','sec4','secGate','sec5','sec6','sec7','secResults'];
+const STEP_LABELS=['Context','Infrastructure','Experience','Automation','Data','Choose path','Innovation','Sustainability','Readiness','Results'];
+const STEP_TIERS=['free','free','free','free','free','free','premium','premium','premium','results'];
 let currentStep=0;
 let unlocked=false; // true once user chose premium path
 const ratings={}; // { I1: 3, I2: 4, ... } (points 0..4)
@@ -939,8 +1014,11 @@ function renderProgress(){
   const wrap=document.getElementById('stepIndicators');
   wrap.innerHTML='';
   STEP_LABELS.forEach((lbl,i)=>{
-    const visible=(i<=4||i===5||unlocked||i===8);
-    const isLocked=(i>=6&&i<=7&&!unlocked);
+    // Free path always sees the context, the 4 free dims, the gate and the
+    // results step. Premium dims 5-7 (indices 6,7,8) only become visible
+    // once the user unlocks the premium path from the gate.
+    const visible=(i<=5||unlocked||i===9);
+    const isLocked=(i>=6&&i<=8&&!unlocked);
     const item=document.createElement('div');
     item.className='step-item';
     if(i===currentStep)item.classList.add('active');
@@ -961,20 +1039,22 @@ function renderProgress(){
 // Render audit sections (1-4 free, 5-6 premium)
 // ==========================================================
 function renderAuditSections(){
-  // sec1..sec6 map to DIMENSIONS[0..5]. Step indices: 1,2,3,4,6,7.
+  // sec1..sec7 map to DIMENSIONS[0..6]. Step indices: 1,2,3,4,6,7,8.
+  // The 5th step is the choice gate (handled separately).
   const map=[
     {stepIdx:1,secId:'sec1',dim:DIMENSIONS[0]},
     {stepIdx:2,secId:'sec2',dim:DIMENSIONS[1]},
     {stepIdx:3,secId:'sec3',dim:DIMENSIONS[2]},
     {stepIdx:4,secId:'sec4',dim:DIMENSIONS[3]},
     {stepIdx:6,secId:'sec5',dim:DIMENSIONS[4]},
-    {stepIdx:7,secId:'sec6',dim:DIMENSIONS[5]}
+    {stepIdx:7,secId:'sec6',dim:DIMENSIONS[5]},
+    {stepIdx:8,secId:'sec7',dim:DIMENSIONS[6]}
   ];
   map.forEach((m,idx)=>{
     const d=m.dim;
     const el=document.getElementById(m.secId);
     const itemHtml=d.items.map((it,i)=>renderItem(d.key,it,i+1)).join('');
-    const isLast=m.stepIdx===7;
+    const isLast=m.stepIdx===8; // Dimension 7 (Readiness) is the final step before results.
     const nextLabel=(m.stepIdx===4)?'Choose your path &rarr;':(isLast?'Generate INDRIYA report &#10024;':'Continue &rarr;');
     const nextFn=(m.stepIdx===4)?`next(4)`:(isLast?`submitAudit()`:`next(${m.stepIdx})`);
     const submitClass=isLast?'btn-submit':'btn-next';
@@ -990,7 +1070,7 @@ function renderAuditSections(){
         ${itemHtml}
         <div class="nav-buttons">
           <button class="btn-back" onclick="prev(${m.stepIdx})">&larr; Back</button>
-          <span class="step-counter">Dimension ${idx+1} of 6 &middot; /20 points</span>
+          <span class="step-counter">Dimension ${idx+1} of 7 &middot; /20 points</span>
           <button class="${submitClass}" onclick="${nextFn}">${nextLabel}</button>
         </div>
       </div>`;
@@ -1029,9 +1109,9 @@ function renderItem(dimKey,item,num){
                   <span class="photo-drop-icon">&#128247;</span>
                   <span class="photo-drop-text">Attach photo evidence<span class="opt-tag">Recommended</span></span>
                 </label>
-                <button type="button" class="btn-sample" onclick="openSample('${item.id}')" title="See what to look for on-ground">
+                ${sampleFor(item.id)?`<button type="button" class="btn-sample" onclick="openSample('${item.id}')" title="See what to look for on-ground">
                   <span class="btn-sample-icon">&#128065;</span><span>View Sample Photo</span>
-                </button>
+                </button>`:''}
               </div>
       <div class="photo-previews" id="prev-${item.id}"></div>
       <div class="photo-warn" id="warn-${item.id}">Heads up &mdash; the generated report is built from your ratings, remarks and photo descriptions. Please add a short, accurate description under each photo. Images are then used for on-site consultant verification.</div>
@@ -1084,21 +1164,151 @@ function delPhoto(id,i){
 }
 
 // ==========================================================
-// Navigation
+// Navigation + auth gate
 // ==========================================================
+// Audit access is gated by an email + OTP flow restricted to Bloomfield
+// Innovations work emails. A successful verification mints a short-lived
+// server-side token; we keep it in sessionStorage so a single browser
+// session doesn't re-prompt between audits.
+const ALLOWED_AUTH_DOMAIN = 'bloomfieldinnovations.in';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
+let authNonce = null;
+
+function getAuthToken(){ try { return sessionStorage.getItem('indriya_auth_token'); } catch(_) { return null; } }
+function getAuthEmail(){ try { return sessionStorage.getItem('indriya_auth_email') || ''; } catch(_) { return ''; } }
+function clearAuth(){ try { sessionStorage.removeItem('indriya_auth_token'); sessionStorage.removeItem('indriya_auth_email'); } catch(_) {} }
+
+// CORS-friendly JSON POST. text/plain content-type qualifies as a "simple
+// request" so the browser skips the preflight and we can actually read the
+// JSON response. Apps Script accepts the raw body in e.postData.contents.
+async function callApiJson(payload){
+  try {
+    const resp = await fetch(GS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (e) {
+    console.log('[v0] API error:', e && e.message);
+    return null;
+  }
+}
+
 function startAudit(){
   document.getElementById('landing').style.display='none';
-  document.getElementById('progWrap').classList.add('show');
   document.getElementById('auditWrap').classList.add('show');
+  if (!getAuthToken()) {
+    showAuthGate();
+    return;
+  }
+  enterAudit();
+}
+
+function enterAudit(){
+  document.getElementById('secAuth').style.display='none';
+  document.getElementById('progWrap').classList.add('show');
   currentStep=0;
   showStep(0);
   renderProgress();
+  // Pre-fill the auditor email with the verified email if blank.
+  const audEl=document.getElementById('audEmail');
+  const e=getAuthEmail();
+  if (audEl && !audEl.value && e) audEl.value = e;
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
+function showAuthGate(){
+  // Hide all step sections, show secAuth, hide the progress bar.
+  STEPS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+  document.getElementById('progWrap').classList.remove('show');
+  document.getElementById('secAuth').style.display='block';
+  document.getElementById('authStep1').style.display='block';
+  document.getElementById('authStep2').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetAuth(){
+  document.getElementById('authStep1').style.display='block';
+  document.getElementById('authStep2').style.display='none';
+  const e=document.getElementById('authEmail'); if(e) e.value='';
+  const o=document.getElementById('authOtp');   if(o) o.value='';
+  authNonce=null;
+}
+
+async function requestOtp(isResend){
+  const emailEl=document.getElementById('authEmail');
+  const fg=document.getElementById('fg-authEmail');
+  const errEl=document.getElementById('authEmailErr');
+  const btn=document.getElementById('btnSendOtp');
+  const email=emailEl.value.trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){
+    fg.classList.add('error');
+    errEl.textContent='Please enter a valid email address.';
+    return;
+  }
+  if(!email.endsWith('@'+ALLOWED_AUTH_DOMAIN)){
+    fg.classList.add('error');
+    errEl.textContent='Access is restricted to @'+ALLOWED_AUTH_DOMAIN+' email addresses.';
+    return;
+  }
+  fg.classList.remove('error');
+
+  const originalLabel=btn.textContent;
+  btn.disabled=true; btn.textContent=isResend?'Resending\u2026':'Sending code\u2026';
+  if (!authNonce) authNonce = (Date.now().toString(36)+Math.random().toString(36).substring(2,14));
+  const resp = await callApiJson({ type:'INDRIYA_OTP_REQUEST', email:email, nonce:authNonce });
+  btn.disabled=false; btn.textContent=originalLabel;
+
+  if (!resp || resp.ok !== true) {
+    fg.classList.add('error');
+    errEl.textContent=(resp && resp.error) || 'Could not send the verification code. Please try again in a moment.';
+    return;
+  }
+  // Move to step 2 of the OTP flow.
+  document.getElementById('authStep1').style.display='none';
+  document.getElementById('authStep2').style.display='block';
+  document.getElementById('authStatus').innerHTML='&#10004; A 6-digit code was just emailed to <strong>'+escapeHtml(email)+'</strong>. It expires in <strong>10 minutes</strong>.';
+  const o=document.getElementById('authOtp'); if(o){ o.value=''; o.focus(); }
+}
+
+async function verifyOtp(){
+  const otpEl=document.getElementById('authOtp');
+  const fg=document.getElementById('fg-authOtp');
+  const errEl=document.getElementById('authOtpErr');
+  const btn=document.getElementById('btnVerifyOtp');
+  const otp=otpEl.value.trim();
+  if(!/^\d{6}$/.test(otp)){
+    fg.classList.add('error');
+    errEl.textContent='Enter the 6-digit code from your email.';
+    return;
+  }
+  fg.classList.remove('error');
+
+  const originalLabel=btn.textContent;
+  btn.disabled=true; btn.textContent='Verifying\u2026';
+  const resp = await callApiJson({ type:'INDRIYA_OTP_VERIFY', nonce:authNonce, otp:otp });
+  btn.disabled=false; btn.textContent=originalLabel;
+
+  if (!resp || resp.ok !== true || !resp.token) {
+    fg.classList.add('error');
+    errEl.textContent=(resp && resp.error) || 'Verification failed. Please try again.';
+    return;
+  }
+  try { sessionStorage.setItem('indriya_auth_token', resp.token); } catch(_) {}
+  try { sessionStorage.setItem('indriya_auth_email', resp.email||''); } catch(_) {}
+  enterAudit();
+}
+
 function backToLanding(){
   document.getElementById('landing').style.display='';
   document.getElementById('progWrap').classList.remove('show');
   document.getElementById('auditWrap').classList.remove('show');
+  document.getElementById('secAuth').style.display='none';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1115,7 +1325,9 @@ function showStep(i){
 
 function goTo(i){
   if(i>currentStep)return; // no skipping ahead
-  if((i===6||i===7)&&!unlocked)return;
+  // Premium dimensions (Innovation, Sustainability, Readiness) are only
+  // accessible after the gate.
+  if((i===6||i===7||i===8)&&!unlocked)return;
   showStep(i);
 }
 
@@ -1134,11 +1346,17 @@ function next(stepIdx){
     showStep(stepIdx+1);
     return;
   }
-  // Premium steps after unlock: 6..7
+  // Premium steps after unlock: 6 (Innovation) -> 7 (Sustainability) -> 8 (Readiness).
   if(stepIdx===6){
     const dim=DIMENSIONS[4];
     if(!validateDimension(dim))return;
     showStep(7);
+    return;
+  }
+  if(stepIdx===7){
+    const dim=DIMENSIONS[5];
+    if(!validateDimension(dim))return;
+    showStep(8);
     return;
   }
 }
@@ -1201,7 +1419,7 @@ function chooseFreeReport(){
 function continueToPremium(){
   unlocked=true;
   renderProgress();
-  showStep(6); // jump to Dimension 5 (Innovation)
+  showStep(6); // jump to Dimension 5 (Innovation) — premium path then continues through Sustainability and Readiness.
 }
 
 // ==========================================================
@@ -1229,8 +1447,10 @@ function maturityFor(total){
 // Submit & render results
 // ==========================================================
 async function submitAudit(){
-  // If the user chose the premium path, Dim 6 must be fully rated before submission.
-  if(unlocked && !validateDimension(DIMENSIONS[5])) return;
+  // Premium path: the final premium dimension (Readiness & Adoption, DIMENSIONS[6])
+  // must be fully rated before submission. Earlier dimensions are validated as
+  // the user advances through next().
+  if(unlocked && !validateDimension(DIMENSIONS[6])) return;
 
   setOverlay('Saving your INDRIYA audit','Uploading your observations &amp; photo evidence &mdash; your report PDF is being built on our server.');
   document.getElementById('overlay').classList.add('active');
@@ -1248,7 +1468,7 @@ async function submitAudit(){
     console.log('[v0] Sheet submit error:',e && e.message);
   }
 
-  showStep(8);
+  showStep(9); // results step is now index 9 with the added Readiness dimension.
   document.getElementById('overlay').classList.remove('active');
 }
 
@@ -1316,13 +1536,20 @@ function buildPayload(results){
     },
     premium_requested:unlocked===true,
     pdf_filename:pdfFilename(),
-    // NEW: everything the server needs to render the PDF itself.
+    // Server uses this to mark the row as "verified" or "unauthenticated".
+    // We don't block on rejection because submission is fire-and-forget.
+    auth_token:getAuthToken()||'',
+    auth_email:getAuthEmail()||'',
+    // Everything the server needs to render the PDF itself.
     dimensions:buildDimensionsPayload()
   };
 }
 
 async function pushToSheet(payload){
-  const GS_URL='https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
+  // Audit submission stays no-cors / fire-and-forget so the UX doesn't block
+  // on the server-side PDF render (which can take several seconds with
+  // photos + sample-image fetch). The OTP gate already guarantees the user
+  // is authenticated by the time this runs.
   try{
     await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   }catch(e){/* silent */}
