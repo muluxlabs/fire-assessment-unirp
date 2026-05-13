@@ -41,6 +41,17 @@ const TAB_INDRIYA_LEADS     = 'INDRIYA Registrations';
 const TAB_INDRIYA_RESPONSES = 'INDRIYA Responses';
 
 // ============================================================
+//  INDRIYA AUTH GATE
+//  Only emails on these domains can request an OTP and start an
+//  INDRIYA audit. Add additional Bloomfield-owned domains here.
+// ============================================================
+const ALLOWED_OTP_DOMAINS    = ['bloomfieldinnovations.in'];
+const OTP_TTL_SECONDS        = 600;     // OTP valid for 10 minutes
+const OTP_MAX_ATTEMPTS       = 5;       // wrong tries before invalidating
+const OTP_HOURLY_LIMIT       = 5;       // OTP requests per email per hour
+const OTP_TOKEN_TTL_SECONDS  = 7200;    // signed audit token = 2 hours
+
+// ============================================================
 //  HTTP ENTRY POINTS
 // ============================================================
 function doPost(e) {
@@ -48,11 +59,13 @@ function doPost(e) {
     const body = parseBody_(e);
     const type = String(body.type || 'FIRE').toUpperCase();
 
-    if (type === 'FIRE')             return handleFire_(body);
-    if (type === 'INDRIYA_INTEREST') return handleIndriyaLead_(body);
-    if (type === 'INDRIYA_AUDIT')    return handleIndriyaAudit_(body);
+    if (type === 'FIRE')                 return handleFire_(body);
+    if (type === 'INDRIYA_INTEREST')     return handleIndriyaLead_(body);
+    if (type === 'INDRIYA_AUDIT')        return handleIndriyaAudit_(body);
+    if (type === 'INDRIYA_OTP_REQUEST')  return handleIndriyaOtpRequest_(body);
+    if (type === 'INDRIYA_OTP_VERIFY')   return handleIndriyaOtpVerify_(body);
 
-    return json_({ ok: false, error: 'Unknown type: ' + type });
+    return withCors_(json_({ ok: false, error: 'Unknown type: ' + type }));
   } catch (err) {
     logError_(err);
     try {
@@ -62,7 +75,7 @@ function doPost(e) {
         body: 'Error: ' + (err && err.message) + '\n\nStack:\n' + (err && err.stack) + '\n\nPayload:\n' + (e && e.postData && e.postData.contents || '(none)')
       });
     } catch (_) {}
-    return json_({ ok: false, error: String(err && err.message || err) });
+    return withCors_(json_({ ok: false, error: String(err && err.message || err) }));
   }
 }
 
@@ -170,6 +183,24 @@ function handleIndriyaAudit_(p) {
   const byDim   = scores.byDim || {};
   const premium = (p.premium_requested === true || p.premium_requested === 'yes' || p.premium_requested === 'YES');
 
+  // Validate the auth token issued by the OTP gate. We do NOT block submission
+  // when invalid, since the audit page is fire-and-forget (no-cors) and the
+  // client cannot react to a rejection. Instead we record the auth status on
+  // the row and raise an alert to the security mailbox for review.
+  const tokenInfo = validateAuditToken_(p.auth_token, ctx.audEmail);
+  const authStatus = tokenInfo.ok ? 'verified' : ('unauthenticated' + (tokenInfo.reason ? ' (' + tokenInfo.reason + ')' : ''));
+  if (!tokenInfo.ok) {
+    try {
+      sendNotify_(
+        '[INDRIYA SECURITY] Audit submitted without a valid token',
+        'Reason: ' + (tokenInfo.reason || 'unknown') +
+        '\nInstitution: ' + (ctx.institution || '-') +
+        '\nAuditor: ' + (ctx.audName || '-') + ' <' + (ctx.audEmail || '-') + '>' +
+        '\nUser-Agent / IP unknown (Apps Script web app).'
+      );
+    } catch (_) {}
+  }
+
   // 1. Build and save the PDF. Prefer the client-supplied base64 (legacy path)
   //    but normally we render the PDF from the payload on the server.
   let pdfUrl  = '';
@@ -193,37 +224,157 @@ function handleIndriyaAudit_(p) {
 
   // 2. Write the row
   const headers = [
-    'Timestamp','Institution','Type','City','Students','Programs',
+    'Timestamp','Auth Status','Institution','Type','City','Students','Programs',
     'Auditor','Role','Email','Phone','Focus',
     'D1 Infrastructure (/20)','D2 Experience (/20)','D3 Automation (/20)',
-    'D4 Data (/20)','D5 Innovation (/20)','D6 Sustainability (/20)',
+    'D4 Data (/20)','D5 Innovation (/20)','D6 Sustainability (/20)','D7 Readiness (/20)',
     'Total','Max','Completion',
     'Premium Requested','PDF Name','PDF Link','Notes'
   ];
-  const completion = premium ? 'Full (6 dimensions)' : 'Free tier (4 dimensions)';
+  // Free path = 4 free dims. Premium = 4 free + 3 premium (Innovation, Sustainability, Readiness).
+  const completion = premium ? 'Full (7 dimensions)' : 'Free tier (4 dimensions)';
   const row = [
-    nowIso_(p.timestamp),
+    nowIso_(p.timestamp), authStatus,
     ctx.institution || '', ctx.iType || '', ctx.city || '', ctx.students || '', ctx.programs || '',
     ctx.audName || '', ctx.audRole || '', ctx.audEmail || '', ctx.audPhone || '', ctx.audContext || '',
     num_(byDim.I), num_(byDim.E), num_(byDim.A), num_(byDim.D),
-    num_(byDim.R), num_(byDim.S),
+    num_(byDim.R), num_(byDim.S), num_(byDim.C),
     num_(scores.total), num_(scores.max), completion,
     premium ? 'YES' : 'no',
     pdfName, pdfUrl,
     pdfErr || ''
   ];
-  appendRow_(TAB_INDRIYA_RESPONSES, headers, row);
+  // Use ensureHeaders_ so existing sheets get the new columns without manual edits.
+  const sh = getSheet_(TAB_INDRIYA_RESPONSES, headers);
+  ensureHeaders_(sh, headers);
+  while (row.length < sh.getLastColumn()) row.push('');
+  sh.appendRow(row);
 
   // 3. Notify
   sendNotify_(
     'INDRIYA Audit - ' + (ctx.institution || 'Unknown') +
-    ' - Score: ' + num_(scores.total) + '/' + num_(scores.max || 120) +
-    (premium ? ' [PREMIUM REQUESTED]' : ' [free tier]'),
-    buildIndriyaAuditEmail_(p, pdfUrl, pdfErr, completion)
+    ' - Score: ' + num_(scores.total) + '/' + num_(scores.max || (premium ? 140 : 80)) +
+    (premium ? ' [PREMIUM REQUESTED]' : ' [free tier]') +
+    (tokenInfo.ok ? '' : ' [UNAUTH]'),
+    buildIndriyaAuditEmail_(p, pdfUrl, pdfErr, completion, authStatus)
   );
 
-  return json_({ ok: true, type: 'INDRIYA_AUDIT', pdfUrl: pdfUrl, pdfErr: pdfErr });
+  return withCors_(json_({ ok: true, type: 'INDRIYA_AUDIT', pdfUrl: pdfUrl, pdfErr: pdfErr, authStatus: authStatus }));
 }
+
+// ============================================================
+//  INDRIYA OTP GATE
+//  - INDRIYA_OTP_REQUEST: validate Bloomfield-domain email, email a 6-digit
+//    code, cache it under a client-supplied nonce.
+//  - INDRIYA_OTP_VERIFY:  check nonce+code, mint a short-lived audit token
+//    that the client must send back with the final audit submission.
+// ============================================================
+function handleIndriyaOtpRequest_(p) {
+  const email = String(p.email || '').trim().toLowerCase();
+  const nonce = String(p.nonce || '').trim();
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    return withCors_(json_({ ok: false, error: 'Please enter a valid email address.' }));
+  }
+  const domain = email.split('@')[1] || '';
+  if (ALLOWED_OTP_DOMAINS.indexOf(domain) === -1) {
+    return withCors_(json_({ ok: false, error: 'INDRIYA audits are restricted to Bloomfield Innovations team email addresses (@' + ALLOWED_OTP_DOMAINS.join(', @') + ').' }));
+  }
+  if (nonce.length < 8 || nonce.length > 80) {
+    return withCors_(json_({ ok: false, error: 'Invalid request nonce.' }));
+  }
+
+  // Rate-limit OTPs per email per hour (best-effort, CacheService is in-memory)
+  const cache = CacheService.getScriptCache();
+  const rateKey = 'indriya_otp_rate:' + email;
+  const cur = parseInt(cache.get(rateKey) || '0', 10);
+  if (cur >= OTP_HOURLY_LIMIT) {
+    return withCors_(json_({ ok: false, error: 'Too many verification codes requested for this address. Please try again in an hour.' }));
+  }
+  cache.put(rateKey, String(cur + 1), 3600);
+
+  const otp = String(Math.floor(100000 + Math.random() * 900000));
+  cache.put('indriya_otp:' + nonce, JSON.stringify({ email: email, otp: otp, attempts: 0, ts: Date.now() }), OTP_TTL_SECONDS);
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: 'INDRIYA Audit verification code: ' + otp,
+      htmlBody:
+        '<div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:auto;color:#1a2a26;">' +
+          '<div style="background:#044a3d;color:white;padding:18px 24px;border-radius:8px 8px 0 0;">' +
+            '<div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7);">Bloomfield Innovations</div>' +
+            '<div style="font-family:Georgia,serif;font-size:22px;font-weight:700;margin-top:4px;">INDRIYA Smart Campus Audit</div>' +
+          '</div>' +
+          '<div style="border:1px solid #e0ddd4;border-top:none;border-radius:0 0 8px 8px;padding:24px;">' +
+            '<p style="margin:0 0 12px;">Hello,</p>' +
+            '<p style="margin:0 0 14px;line-height:1.55;">Use the one-time code below to start your INDRIYA audit. The code is valid for 10 minutes and can only be used once.</p>' +
+            '<div style="font-size:30px;font-weight:700;letter-spacing:8px;color:#044a3d;background:#fbf6e8;border:2px solid #c9a84c;border-radius:10px;padding:16px 24px;text-align:center;margin:18px 0;">' + otp + '</div>' +
+            '<p style="margin:0 0 8px;font-size:12.5px;color:#555;line-height:1.6;">If you did not request this code, you can safely ignore this email. No action will be taken on your account.</p>' +
+            '<hr style="margin:18px 0;border:none;border-top:1px solid #e0ddd4;">' +
+            '<p style="margin:0;font-size:11px;color:#9a9a9a;">INDRIYA &middot; A Bloomfield Innovations programme &middot; Powered by UniRP</p>' +
+          '</div>' +
+        '</div>'
+    });
+  } catch (e) {
+    logError_(e);
+    return withCors_(json_({ ok: false, error: 'We could not send the verification email. Please retry in a moment.' }));
+  }
+
+  return withCors_(json_({ ok: true, type: 'INDRIYA_OTP_REQUEST', expiresInSeconds: OTP_TTL_SECONDS }));
+}
+
+function handleIndriyaOtpVerify_(p) {
+  const nonce = String(p.nonce || '').trim();
+  const otp   = String(p.otp || '').trim();
+  if (!nonce) return withCors_(json_({ ok: false, error: 'Missing verification nonce.' }));
+  if (!/^\d{4,8}$/.test(otp)) return withCors_(json_({ ok: false, error: 'Enter the 6-digit code from your email.' }));
+
+  const cache = CacheService.getScriptCache();
+  const raw = cache.get('indriya_otp:' + nonce);
+  if (!raw) {
+    return withCors_(json_({ ok: false, error: 'Your verification code has expired. Please request a new one.' }));
+  }
+  let stored;
+  try { stored = JSON.parse(raw); } catch (_) { return withCors_(json_({ ok: false, error: 'Invalid verification record. Please request a new code.' })); }
+
+  if ((stored.attempts || 0) >= OTP_MAX_ATTEMPTS) {
+    cache.remove('indriya_otp:' + nonce);
+    return withCors_(json_({ ok: false, error: 'Too many wrong attempts. Please request a new code.' }));
+  }
+  if (String(stored.otp) !== otp) {
+    stored.attempts = (stored.attempts || 0) + 1;
+    cache.put('indriya_otp:' + nonce, JSON.stringify(stored), OTP_TTL_SECONDS);
+    const left = OTP_MAX_ATTEMPTS - stored.attempts;
+    return withCors_(json_({ ok: false, error: 'Incorrect code. ' + (left > 0 ? left + ' attempt' + (left === 1 ? '' : 's') + ' remaining.' : 'No attempts left.') }));
+  }
+
+  cache.remove('indriya_otp:' + nonce);
+  const token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+  cache.put('indriya_audit_token:' + token, stored.email, OTP_TOKEN_TTL_SECONDS);
+  return withCors_(json_({ ok: true, type: 'INDRIYA_OTP_VERIFY', token: token, email: stored.email, expiresInSeconds: OTP_TOKEN_TTL_SECONDS }));
+}
+
+// Returns { ok: bool, reason: string, email: string }
+function validateAuditToken_(token, claimedEmail) {
+  if (!token) return { ok: false, reason: 'missing_token' };
+  const t = String(token).trim();
+  if (t.length < 16 || t.length > 200) return { ok: false, reason: 'malformed_token' };
+  const cache = CacheService.getScriptCache();
+  const cached = cache.get('indriya_audit_token:' + t);
+  if (!cached) return { ok: false, reason: 'expired_or_unknown_token' };
+  if (claimedEmail && String(cached).toLowerCase() !== String(claimedEmail).trim().toLowerCase()) {
+    return { ok: false, reason: 'email_mismatch', email: cached };
+  }
+  return { ok: true, email: cached };
+}
+
+// Apps Script ContentService responses already include permissive CORS for
+// GET. For POST we keep the result simple-text + JSON; modern browsers can
+// read it because the request itself is sent with Content-Type: text/plain
+// (a "simple request" that does NOT trigger a preflight). This helper is a
+// placeholder for future fine-grained CORS handling.
+function withCors_(out) { return out; }
 
 // ============================================================
 //  DRIVE: save audit PDF in a per-institution sub-folder
@@ -292,21 +443,57 @@ function savePdfBlobToDrive_(pdfBlob, institution, auditor, suggestedName) {
   return { url: file.getUrl(), name: name };
 }
 
-// Builds the full HTML source for the INDRIYA audit PDF. Photos are embedded
-// as data URLs, so Google's HTML -> PDF converter renders them inline without
-// needing any external fetch.
+// Builds the full HTML source for the INDRIYA audit PDF. User-uploaded photos
+// arrive from the client as data URLs (so they embed fine) but sample
+// reference photos arrive as external HTTPS URLs to /assets/samples/*.jpg.
+// Google's HTML->PDF converter (Utilities.newBlob(html).getAs('application/pdf'))
+// does NOT fetch external images at convert time, which is why those samples
+// were missing from the Drive copy. We pre-fetch them once each via
+// UrlFetchApp and rewrite the payload to inline base64 data URLs.
+function embedSampleImagesInPayload_(dims) {
+  const memo = {}; // url -> data URL ('' if fetch failed)
+  (dims || []).forEach(function(dim) {
+    (dim.items || []).forEach(function(it) {
+      const s = it && it.sample;
+      if (!s || !s.src || /^data:/i.test(s.src)) return;
+      const url = s.src;
+      if (!(url in memo)) {
+        try {
+          const resp = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+          const code = resp.getResponseCode();
+          if (code >= 200 && code < 300) {
+            const blob = resp.getBlob();
+            const ct = blob.getContentType() || 'image/jpeg';
+            memo[url] = 'data:' + ct + ';base64,' + Utilities.base64Encode(blob.getBytes());
+          } else {
+            memo[url] = '';
+            logError_(new Error('Sample fetch HTTP ' + code + ' for ' + url));
+          }
+        } catch (e) {
+          memo[url] = '';
+          logError_(e);
+        }
+      }
+      if (memo[url]) it.sample = { src: memo[url], caption: s.caption };
+    });
+  });
+}
+
 function buildAuditHtml_(p, premium) {
   const ctx    = p.context || {};
   const scores = p.scores  || {};
   const byDim  = scores.byDim || {};
   const dims   = Array.isArray(p.dimensions) ? p.dimensions : [];
 
+  // Inline all sample reference images so they survive the HTML->PDF conversion.
+  embedSampleImagesInPayload_(dims);
+
   const tz    = Session.getScriptTimeZone() || 'Asia/Kolkata';
   const date  = Utilities.formatDate(new Date(), tz, 'dd MMMM yyyy, HH:mm');
   const total = (scores.total  == null ? '-' : scores.total);
-  const max   = (scores.max    == null ? 120 : scores.max);
+  const max   = (scores.max    == null ? (premium ? 140 : 80) : scores.max);
   const pct   = (typeof scores.total === 'number' && max) ? Math.round((scores.total / max) * 100) : '-';
-  const scope = premium ? 'Full INDRIYA audit - 6 dimensions' : 'Free tier - 4 technical dimensions';
+  const scope = premium ? 'Full INDRIYA audit - 7 dimensions' : 'Free tier - 4 technical dimensions';
 
   const dimMap = [
     ['I','Digital Infrastructure'],
@@ -314,7 +501,8 @@ function buildAuditHtml_(p, premium) {
     ['A','Automation &amp; RPA'],
     ['D','Data Intelligence'],
     ['R','Innovation &amp; Industry'],
-    ['S','Sustainability &amp; Future Readiness']
+    ['S','Sustainability &amp; Future Readiness'],
+    ['C','Smart Campus Readiness &amp; Adoption']
   ];
   const scorecardRows = dimMap.map(function(d){
     var v = byDim[d[0]];
@@ -519,7 +707,7 @@ function buildIndriyaLeadEmail_(p) {
   return L.join('\n');
 }
 
-function buildIndriyaAuditEmail_(p, pdfUrl, pdfErr, completion) {
+function buildIndriyaAuditEmail_(p, pdfUrl, pdfErr, completion, authStatus) {
   const ctx    = p.context || {};
   const scores = p.scores  || {};
   const byDim  = scores.byDim || {};
@@ -528,6 +716,7 @@ function buildIndriyaAuditEmail_(p, pdfUrl, pdfErr, completion) {
   const L = [];
   L.push('New INDRIYA Smart Campus Audit submitted');
   L.push('-----------------------------------------');
+  if (authStatus) L.push('AUTH STATUS:  ' + authStatus);
   L.push('INSTITUTION');
   L.push('   Name:        ' + fallback_(ctx.institution));
   L.push('   Type:        ' + fallback_(ctx.iType));
@@ -544,16 +733,17 @@ function buildIndriyaAuditEmail_(p, pdfUrl, pdfErr, completion) {
   L.push('');
   L.push('-----------------------------------------');
   L.push('INDRIYA SCORE');
-  L.push('   Total:    ' + fallback_(scores.total) + ' / ' + fallback_(scores.max, 120));
+  L.push('   Total:    ' + fallback_(scores.total) + ' / ' + fallback_(scores.max, premium ? 140 : 80));
   L.push('   Scope:    ' + completion);
   L.push('');
   L.push('   Dimension Breakdown:');
-  L.push('     1  Digital Infrastructure:  ' + dimLine_(byDim.I));
-  L.push('     2  Student Experience:      ' + dimLine_(byDim.E));
-  L.push('     3  Automation & RPA:        ' + dimLine_(byDim.A));
-  L.push('     4  Data Intelligence:       ' + dimLine_(byDim.D));
-  L.push('     5  Innovation & Industry:   ' + dimLine_(byDim.R));
-  L.push('     6  Sustainability:          ' + dimLine_(byDim.S));
+  L.push('     1  Digital Infrastructure:    ' + dimLine_(byDim.I));
+  L.push('     2  Student Experience:        ' + dimLine_(byDim.E));
+  L.push('     3  Automation & RPA:          ' + dimLine_(byDim.A));
+  L.push('     4  Data Intelligence:         ' + dimLine_(byDim.D));
+  L.push('     5  Innovation & Industry:     ' + dimLine_(byDim.R));
+  L.push('     6  Sustainability:            ' + dimLine_(byDim.S));
+  L.push('     7  Readiness & Adoption:      ' + dimLine_(byDim.C));
   L.push('');
   L.push('-----------------------------------------');
   L.push('PREMIUM REQUESTED:  ' + (premium ? 'YES - please prioritise follow-up' : 'no'));
