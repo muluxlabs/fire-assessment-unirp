@@ -781,6 +781,74 @@ let curStep = 0;
 const scores = {};
 let lastFD = null;
 let recordId = null;
+
+// ─── DRAFT PERSISTENCE (IndexedDB) ────────────────────────
+// Answers and respondent details are autosaved locally so a half-finished
+// assessment survives a reload or a return visit. IndexedDB (not localStorage)
+// keeps this consistent with the INDRIYA tool and leaves headroom to grow.
+// The draft is cleared once the assessment is successfully submitted.
+const IDB_NAME='fire_assessment', IDB_STORE='draft', IDB_KEY='current';
+const FIRE_FIELDS=['firstName','lastName','email','phone','role','dept','iName','iType','students','faculty','programs','city','erp','goals'];
+let draftDisabled=false;
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    let req; try{ req=indexedDB.open(IDB_NAME,1); }catch(e){ return reject(e); }
+    req.onupgradeneeded=()=>{ const db=req.result; if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE); };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function idbPut(val){ try{ const db=await idbOpen(); return await new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).put(val,IDB_KEY); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); }); }catch(e){ return false; } }
+async function idbGet(){ try{ const db=await idbOpen(); return await new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readonly'); const r=tx.objectStore(IDB_STORE).get(IDB_KEY); r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error); }); }catch(e){ return null; } }
+async function idbDel(){ try{ const db=await idbOpen(); return await new Promise((res)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).delete(IDB_KEY); tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); }); }catch(e){ return false; } }
+
+function readFields(){ const o={}; FIRE_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) o[id]=el.value; }); return o; }
+function draftHasContent(d){
+  if(!d) return false;
+  if(d.scores && Object.keys(d.scores).length) return true;
+  if(d.fields && (d.fields.email || d.fields.iName || d.fields.firstName)) return true;
+  return false;
+}
+function buildDraft(){ return { v:1, tool:'FIRE', updatedAt:new Date().toISOString(), recordId:recordId, fields:readFields(), scores:Object.assign({},scores), curStep:curStep }; }
+let _saveT=null;
+function scheduleSave(){ if(draftDisabled) return; if(_saveT) clearTimeout(_saveT); _saveT=setTimeout(saveDraftNow,500); }
+function saveDraftNow(){ if(draftDisabled) return; const d=buildDraft(); if(draftHasContent(d)) idbPut(d); }
+
+function applyDraft(d){
+  if(!d) return;
+  if(d.recordId) recordId=d.recordId;
+  const f=d.fields||{};
+  FIRE_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el && f[id]!=null) el.value=f[id]; });
+  Object.keys(scores).forEach(k=>delete scores[k]); Object.assign(scores, d.scores||{});
+  // Reflect saved answers back onto the option buttons (match by the score shown).
+  Object.entries(scores).forEach(([qid,sc])=>{
+    const cont=document.getElementById('q'+qid); if(!cont) return;
+    cont.querySelectorAll('.option-item').forEach(o=>{
+      const sEl=o.querySelector('.option-score');
+      if(sEl && sEl.textContent.trim()===sc+'/5') o.classList.add('selected');
+      else o.classList.remove('selected');
+    });
+  });
+  // Don't restore straight into the results step (index 7) — they hadn't submitted.
+  const step=(typeof d.curStep==='number' && d.curStep>=0 && d.curStep<=6)?d.curStep:0;
+  showStep(step);
+}
+
+function showResumeBanner(d){
+  if(document.getElementById('resumeBanner')) return;
+  let when='earlier'; try{ when=new Date(d.updatedAt).toLocaleString(); }catch(_){}
+  const bar=document.createElement('div');
+  bar.id='resumeBanner';
+  bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a3a5c;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.25);flex-wrap:wrap;';
+  bar.innerHTML='<span style="flex:1;min-width:200px;">&#10227; We restored your in-progress assessment from <strong>'+when+'</strong>.</span>'+
+    '<button type="button" id="rbResume" style="background:#fff;border:none;color:#1a3a5c;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;">Continue</button>'+
+    '<button type="button" id="rbDiscard" style="background:transparent;border:1px solid rgba(255,255,255,0.6);color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;">Start over</button>';
+  document.body.appendChild(bar);
+  document.body.style.paddingTop=bar.offsetHeight+'px';
+  document.getElementById('rbResume').onclick=()=>{ bar.remove(); document.body.style.paddingTop=''; };
+  document.getElementById('rbDiscard').onclick=discardDraft;
+}
+async function discardDraft(){ draftDisabled=true; try{ await idbDel(); }catch(_){} location.reload(); }
 const GS_URL = 'https://script.google.com/macros/s/AKfycbyckbm1wo8Yu8b-SfH3PsLqYNWabbJkBqxiMTGrnqK5xgsardWYzin8bsJsyIJpbTWp/exec';
 function genRecordId(){
   if(window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
@@ -805,7 +873,9 @@ function collectLeadAndInstitution(){
   };
 }
 async function startAssessment(){
-  if(!val1()) return;
+  // Soft-validate: flag the institution fields if blank but don't block — the
+  // respondent can fill them later (validated for real at submit).
+  val1();
   if(!recordId) recordId = genRecordId();
   const draft = {
     type:'FIRE',
@@ -861,11 +931,22 @@ function buildSection(sKey, stepIdx) {
   return html;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   Object.entries(PILLAR_MAP).forEach(([si,sk]) => {
     document.getElementById('secBody'+si).innerHTML = buildSection(sk, parseInt(si));
   });
   updateIndicators();
+
+  // Autosave respondent + institution fields as they're typed.
+  FIRE_FIELDS.forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',scheduleSave); });
+
+  // Resume a saved draft if one exists.
+  let draft=null;
+  try{ draft=await idbGet(); }catch(_){}
+  if(draftHasContent(draft)){
+    applyDraft(draft);
+    showResumeBanner(draft);
+  }
 });
 
 // ─── NAVIGATION ───────────────────────────────────────────
@@ -874,13 +955,15 @@ function showStep(s) {
   document.getElementById('sec'+s).classList.add('active');
   curStep = s;
   updateIndicators();
+  scheduleSave();
   window.scrollTo({top:0,behavior:'smooth'});
 }
-function goToStep(s) { if(s<=curStep) showStep(s); }
+// Free navigation: jump to any step (except the results step, which requires a
+// submission). Respondents can answer pillars in any order.
+function goToStep(s) { if(s>=0 && s<=6) showStep(s); }
 function next(s) {
-  if(s===0 && !val0()) return;
-  if(s===1 && !val1()) return;
-  if(SK[s] && !valQs(SK[s])) return;
+  // "Next" just advances — answering every question is no longer required to
+  // move on. Respondent + institution details are validated once, at submit.
   showStep(s+1);
 }
 function prev(s) { showStep(s-1); }
@@ -903,6 +986,7 @@ function pick(el,qid,score) {
   // Clear error state when answered
   const qg = el.closest('.question-group');
   if(qg) qg.classList.remove('q-error');
+  scheduleSave();
 }
 
 // ─── VALIDATION ───────────────────────────────────────────
@@ -950,7 +1034,10 @@ function valQs(keys) {
 
 // ─── SUBMIT ───────────────────────────────────────────────
 async function submitAssessment() {
-  if(!valQs(SK[6])) return;
+  // Free navigation allows partial answers (unanswered questions score 0).
+  // We still require respondent + institution identity before submitting.
+  if(!val0()){ showStep(0); return; }
+  if(!val1()){ showStep(1); return; }
   document.getElementById('overlay').classList.add('active');
 
   const pScores={};
@@ -1008,6 +1095,10 @@ async function submitAssessment() {
   try {
     await fetch(GS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(fd)});
   } catch(e) {console.log('Sheet:',e.message);}
+
+  // Submitted — clear the local draft so a fresh visit starts clean.
+  draftDisabled=true;
+  try{ await idbDel(); }catch(_){}
 
   setTimeout(()=>{
     document.getElementById('overlay').classList.remove('active');
