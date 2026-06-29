@@ -1,5 +1,6 @@
-// Top-level build file. Plugin versions are declared here and applied in :app.
+// Top-level build file. Versions match the toolchain already present on this
+// machine (AGP 9.0.1 / Kotlin 2.3.20 / Gradle 9.1.0) so no large downloads.
 plugins {
-    id 'com.android.application' version '8.5.2' apply false
-    id 'org.jetbrains.kotlin.android' version '1.9.24' apply false
+    // AGP 9.0 provides built-in Kotlin support, so no separate Kotlin plugin.
+    id 'com.android.application' version '9.0.1' apply false
 }

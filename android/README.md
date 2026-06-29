@@ -19,21 +19,46 @@ with no second codebase to maintain.
 
 ## Build & run
 
-Requires **Android Studio (Koala/Ladybug or newer)** or a local Gradle + Android SDK,
-**JDK 17**.
+Toolchain (what this was built and verified with): **JDK 17**, **AGP 9.0.1**,
+**Gradle 9.1.0** (wrapper), **Android SDK 36** (compile/target), **build-tools
+36.0.0**, `minSdk 26`. Kotlin is compiled by AGP 9.0's built-in Kotlin support
+(no separate Kotlin Gradle plugin).
 
-1. Open the `android/` folder in Android Studio (it provisions the Gradle wrapper
-   and SDK automatically). Or from the CLI, generate the wrapper once with a local
-   Gradle 8.7: `gradle wrapper`.
-2. Let Gradle sync, then **Run** on a device/emulator (min Android 8.0 / API 26),
-   or build an APK:
+1. Point Gradle at your SDK via `android/local.properties` (git-ignored):
    ```
-   ./gradlew assembleDebug
+   sdk.dir=C:\\path\\to\\android-sdk
    ```
-   The APK lands in `app/build/outputs/apk/debug/`.
+2. Build:
+   - **Debug** (quick, debug-signed): `./gradlew assembleDebug` →
+     `app/build/outputs/apk/debug/app-debug.apk`
+   - **Release** (R8 + resource shrinking, smallest, signed): `./gradlew assembleRelease`
+     → `app/build/outputs/apk/release/app-release.apk` (~3.9 MB).
+3. Or open the `android/` folder in Android Studio and Run on a device/emulator
+   (min Android 8.0 / API 26).
 
 The `syncWebAssets` task runs automatically before each build, so the bundled
 HTML always matches the repo root.
+
+### Release signing
+
+`assembleRelease` is signed when `android/keystore.properties` exists (git-ignored):
+
+```
+storeFile=app/release.keystore
+storePassword=*****
+keyAlias=*****
+keyPassword=*****
+```
+
+Generate a keystore once with the JDK's `keytool`:
+
+```
+keytool -genkeypair -v -keystore app/release.keystore -alias unirp \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Without `keystore.properties`, the release APK builds unsigned (use `assembleDebug`
+for a directly installable build instead).
 
 ## Configuration
 

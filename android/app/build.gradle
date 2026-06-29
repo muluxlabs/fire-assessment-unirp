@@ -1,33 +1,51 @@
 plugins {
+    // Kotlin is compiled by AGP 9.0's built-in Kotlin support.
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
 }
+
+// Optional release signing — read from keystore.properties if present (git-ignored).
+def keystorePropsFile = rootProject.file('keystore.properties')
+def hasKeystore = keystorePropsFile.exists()
+def keystoreProps = new Properties()
+if (hasKeystore) { keystorePropsFile.withInputStream { keystoreProps.load(it) } }
 
 android {
     namespace 'com.bloomfieldinnovations.unirp'
-    compileSdk 34
+    compileSdk 36
+    buildToolsVersion '36.0.0'
 
     defaultConfig {
         applicationId 'com.bloomfieldinnovations.unirp'
         minSdk 26
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName '1.0.0'
     }
 
+    signingConfigs {
+        if (hasKeystore) {
+            release {
+                storeFile rootProject.file(keystoreProps.getProperty('storeFile'))
+                storePassword keystoreProps.getProperty('storePassword')
+                keyAlias keystoreProps.getProperty('keyAlias')
+                keyPassword keystoreProps.getProperty('keyPassword')
+            }
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            // R8 + resource shrinking for the smallest installable APK.
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasKeystore) signingConfig signingConfigs.release
         }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-    }
-    kotlinOptions {
-        jvmTarget = '17'
     }
 }
 

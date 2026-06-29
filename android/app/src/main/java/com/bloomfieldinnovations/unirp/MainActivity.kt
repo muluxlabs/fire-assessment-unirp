@@ -34,7 +34,7 @@ import java.io.File
  * Native glue provided here:
  *   - serves the bundled site over https://appassets.androidplatform.net so
  *     IndexedDB has a stable, secure-context origin that survives relaunches;
- *   - wires <input type="file" accept="image/*" capture> to the camera + gallery;
+ *   - wires the page's image file input (camera capture) to the camera + gallery;
  *   - routes the report's window.print() to the Android print framework;
  *   - points sample-reference images at the public host so the server-side PDF
  *     can still fetch them.
