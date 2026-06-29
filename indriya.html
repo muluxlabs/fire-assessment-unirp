@@ -1008,6 +1008,104 @@ const photos={};  // { I1: [{dataUrl,name,desc}] }
 const ctx={};
 
 // ==========================================================
+// Draft persistence (IndexedDB) — survives reloads & sessions
+// ==========================================================
+// An in-progress audit can carry several on-ground phone photos held as
+// data URLs (tens of MB total), well past the ~5MB localStorage cap, so the
+// whole draft lives in IndexedDB. It is autosaved on every change and cleared
+// only after a successful submit, so an auditor can leave mid-audit (e.g.
+// walk from the hostel block to the labs) and resume later without losing
+// ratings, remarks, OR photo evidence.
+const IDB_NAME='indriya_audit', IDB_STORE='draft', IDB_KEY='current';
+let draftDisabled=false; // set true after submit/discard so late autosaves don't resurrect it
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    let req; try{ req=indexedDB.open(IDB_NAME,1); }catch(e){ return reject(e); }
+    req.onupgradeneeded=()=>{ const db=req.result; if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE); };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function idbPut(val){ try{ const db=await idbOpen(); return await new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).put(val,IDB_KEY); tx.oncomplete=()=>res(true); tx.onerror=()=>rej(tx.error); }); }catch(e){ console.log('[v0] draft save failed:',e&&e.message); return false; } }
+async function idbGet(){ try{ const db=await idbOpen(); return await new Promise((res,rej)=>{ const tx=db.transaction(IDB_STORE,'readonly'); const r=tx.objectStore(IDB_STORE).get(IDB_KEY); r.onsuccess=()=>res(r.result||null); r.onerror=()=>rej(r.error); }); }catch(e){ return null; } }
+async function idbDel(){ try{ const db=await idbOpen(); return await new Promise((res)=>{ const tx=db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).delete(IDB_KEY); tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); }); }catch(e){ return false; } }
+
+// Read the Step-1 context inputs WITHOUT validating, so whatever the auditor
+// has typed is captured into ctx for the autosaved draft.
+function captureContextSoft(){
+  const map=[['iName','institution'],['iType','iType'],['students','students'],['programs','programs'],['city','city'],['audName','audName'],['audRole','audRole'],['audEmail','audEmail'],['audPhone','audPhone'],['audContext','audContext']];
+  map.forEach(([id,key])=>{ const el=document.getElementById(id); if(el) ctx[key]=(typeof el.value==='string'?el.value.trim():el.value); });
+}
+
+function draftHasContent(d){
+  if(!d) return false;
+  if(d.ratings && Object.keys(d.ratings).length) return true;
+  if(d.remarks && Object.values(d.remarks).some(x=>x && String(x).trim())) return true;
+  if(d.photos && Object.values(d.photos).some(a=>a && a.length)) return true;
+  if(d.ctx && (d.ctx.institution || d.ctx.audName)) return true;
+  return false;
+}
+
+function buildDraft(){
+  captureContextSoft();
+  return { v:1, tool:'INDRIYA', updatedAt:new Date().toISOString(),
+           ctx:Object.assign({},ctx), ratings:Object.assign({},ratings),
+           remarks:Object.assign({},remarks), photos:photos,
+           unlocked:unlocked, currentStep:currentStep };
+}
+
+let _saveT=null;
+function scheduleSave(){ if(draftDisabled) return; if(_saveT) clearTimeout(_saveT); _saveT=setTimeout(saveDraftNow,500); }
+function saveDraftNow(){ if(draftDisabled) return; const d=buildDraft(); if(draftHasContent(d)) idbPut(d); }
+
+// Re-hydrate the page from a saved draft: restore state objects, refill the
+// context inputs, rebuild the dimension sections, then reflect every rating,
+// remark and photo back into the freshly-rendered DOM.
+function applyDraft(d){
+  if(!d) return;
+  Object.assign(ctx, d.ctx||{});
+  Object.keys(ratings).forEach(k=>delete ratings[k]); Object.assign(ratings, d.ratings||{});
+  Object.keys(remarks).forEach(k=>delete remarks[k]); Object.assign(remarks, d.remarks||{});
+  Object.keys(photos).forEach(k=>delete photos[k]); Object.assign(photos, d.photos||{});
+  unlocked = d.unlocked===true;
+
+  const set=(id,val)=>{ const el=document.getElementById(id); if(el && val!=null && val!=='') el.value=val; };
+  set('iName',ctx.institution);set('iType',ctx.iType);set('students',ctx.students);set('programs',ctx.programs);set('city',ctx.city);
+  set('audName',ctx.audName);set('audRole',ctx.audRole);set('audEmail',ctx.audEmail);set('audPhone',ctx.audPhone);set('audContext',ctx.audContext);
+
+  renderAuditSections(); // rebuild items, then paint saved values onto them
+  Object.entries(ratings).forEach(([id,pts])=>{
+    const opt=document.querySelector('.rate-opt[data-item="'+id+'"][data-pts="'+pts+'"]');
+    if(opt){ opt.parentElement.querySelectorAll('.rate-opt').forEach(o=>o.classList.remove('selected')); opt.classList.add('selected'); }
+  });
+  Object.entries(remarks).forEach(([id,txt])=>{
+    const item=document.getElementById('ai-'+id);
+    const ta=item && item.querySelector('.remark-input');
+    if(ta) ta.value=txt||'';
+  });
+  Object.keys(photos).forEach(id=>renderPhotoPreviews(id));
+  renderProgress();
+  const step=(typeof d.currentStep==='number' && d.currentStep>=0 && d.currentStep<=8)?d.currentStep:0;
+  showStep(step);
+}
+
+function showResumeBanner(d){
+  if(document.getElementById('resumeBanner')) return;
+  let when='earlier'; try{ when=new Date(d.updatedAt).toLocaleString(); }catch(_){}
+  const bar=document.createElement('div');
+  bar.id='resumeBanner';
+  bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#0d4a3a;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.25);flex-wrap:wrap;';
+  bar.innerHTML='<span style="flex:1;min-width:200px;">&#10227; We restored your in-progress audit from <strong>'+when+'</strong> &mdash; ratings, notes and photos included.</span>'+
+    '<button type="button" id="rbResume" style="background:#fff;border:none;color:#0d4a3a;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;">Continue</button>'+
+    '<button type="button" id="rbDiscard" style="background:transparent;border:1px solid rgba(255,255,255,0.6);color:#fff;border-radius:8px;padding:6px 14px;cursor:pointer;">Start over</button>';
+  document.body.appendChild(bar);
+  document.body.style.paddingTop=bar.offsetHeight+'px';
+  document.getElementById('rbResume').onclick=()=>{ bar.remove(); document.body.style.paddingTop=''; };
+  document.getElementById('rbDiscard').onclick=discardDraft;
+}
+async function discardDraft(){ draftDisabled=true; try{ await idbDel(); }catch(_){} location.reload(); }
+
+// ==========================================================
 // Progress bar
 // ==========================================================
 function renderProgress(){
@@ -1100,7 +1198,7 @@ function renderItem(dimKey,item,num){
     <div class="q-err-msg">Please select a rating based on what you observed on-ground.</div>
     <div class="remark-row">
       <div class="remark-label">Remarks / observation</div>
-              <textarea class="remark-input" placeholder="What did you see or hear on-ground?" oninput="remarks['${item.id}']=this.value"></textarea>
+              <textarea class="remark-input" placeholder="What did you see or hear on-ground?" oninput="remarks['${item.id}']=this.value;scheduleSave()"></textarea>
     </div>
             <div class="photo-row">
               <div class="photo-actions">
@@ -1125,6 +1223,7 @@ function pickRating(id,pts,el){
   el.classList.add('selected');
   const item=document.getElementById('ai-'+id);
   if(item)item.classList.remove('q-err');
+  scheduleSave();
 }
 
 function handlePhotos(e,id){
@@ -1137,6 +1236,7 @@ function handlePhotos(e,id){
       const entry={name:f.name,dataUrl:ev.target.result,desc:''};
       photos[id].push(entry);
       renderPhotoPreviews(id);
+      scheduleSave();
     };
     reader.readAsDataURL(f);
   });
@@ -1151,7 +1251,7 @@ function renderPhotoPreviews(id){
     <div class="photo-thumb">
       <img src="${p.dataUrl}" alt="Evidence photo ${i+1} for ${id}">
       <button class="pt-del" type="button" aria-label="Remove photo" onclick="delPhoto('${id}',${i})">&times;</button>
-      <textarea class="pt-desc" placeholder="Short, accurate description" oninput="photos['${id}'][${i}].desc=this.value">${p.desc||''}</textarea>
+      <textarea class="pt-desc" placeholder="Short, accurate description" oninput="photos['${id}'][${i}].desc=this.value;scheduleSave()">${p.desc||''}</textarea>
     </div>`).join('');
   const warn=document.getElementById('warn-'+id);
   if(warn) warn.classList.toggle('show',list.length>0);
@@ -1161,6 +1261,7 @@ function delPhoto(id,i){
   if(!photos[id])return;
   photos[id].splice(i,1);
   renderPhotoPreviews(id);
+  scheduleSave();
 }
 
 // ==========================================================
@@ -1206,16 +1307,25 @@ function startAudit(){
   enterAudit();
 }
 
-function enterAudit(){
+async function enterAudit(){
   document.getElementById('secAuth').style.display='none';
   document.getElementById('progWrap').classList.add('show');
-  currentStep=0;
-  showStep(0);
-  renderProgress();
   // Pre-fill the auditor email with the verified email if blank.
   const audEl=document.getElementById('audEmail');
   const e=getAuthEmail();
   if (audEl && !audEl.value && e) audEl.value = e;
+
+  // Resume a saved draft if one exists (survives reloads and new sessions).
+  let draft=null;
+  try{ draft=await idbGet(); }catch(_){}
+  if(draftHasContent(draft)){
+    applyDraft(draft);
+    showResumeBanner(draft);
+  } else {
+    currentStep=0;
+    showStep(0);
+    renderProgress();
+  }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1320,45 +1430,29 @@ function showStep(i){
   });
   currentStep=i;
   renderProgress();
+  scheduleSave();
   window.scrollTo({top:document.getElementById('progWrap').offsetTop-10,behavior:'smooth'});
 }
 
 function goTo(i){
-  if(i>currentStep)return; // no skipping ahead
-  // Premium dimensions (Innovation, Sustainability, Readiness) are only
-  // accessible after the gate.
+  // Free navigation: auditors can jump to any dimension in any order (e.g.
+  // rate the hostel block now, the labs later) — no "finish this first" gate.
+  // The only lock is the premium tier: dimensions 5-7 (Innovation,
+  // Sustainability, Readiness) stay closed until the auditor chooses the
+  // premium path at the gate.
   if((i===6||i===7||i===8)&&!unlocked)return;
   showStep(i);
 }
 
 function next(stepIdx){
-  if(stepIdx===0){
-    if(!validateContext())return;
-    captureContext();
-    showStep(1);
-    return;
-  }
-  // Free dimension steps: 1..4 -> require all ratings
-  if(stepIdx>=1&&stepIdx<=4){
-    const dim=DIMENSIONS[stepIdx-1];
-    if(!validateDimension(dim))return;
-    if(stepIdx===4){showStep(5);return;} // go to gate
-    showStep(stepIdx+1);
-    return;
-  }
-  // Premium steps after unlock: 6 (Innovation) -> 7 (Sustainability) -> 8 (Readiness).
-  if(stepIdx===6){
-    const dim=DIMENSIONS[4];
-    if(!validateDimension(dim))return;
-    showStep(7);
-    return;
-  }
-  if(stepIdx===7){
-    const dim=DIMENSIONS[5];
-    if(!validateDimension(dim))return;
-    showStep(8);
-    return;
-  }
+  // The "Continue" buttons just advance to the next step. Completeness is no
+  // longer required to move on — unrated items simply score 0 and identity is
+  // validated once, at submit. Context is captured softly so it persists.
+  if(stepIdx===0){ captureContextSoft(); scheduleSave(); showStep(1); return; }
+  if(stepIdx>=1&&stepIdx<=3){ showStep(stepIdx+1); return; }
+  if(stepIdx===4){ showStep(5); return; } // go to gate
+  if(stepIdx===6){ showStep(7); return; }
+  if(stepIdx===7){ showStep(8); return; }
 }
 
 function prev(stepIdx){
@@ -1395,6 +1489,7 @@ function captureContext(){
   ctx.audPhone=document.getElementById('audPhone').value.trim();
   ctx.audContext=document.getElementById('audContext').value.trim();
   ctx.startedAt=new Date().toISOString();
+  scheduleSave();
 }
 
 function validateDimension(dim){
@@ -1419,7 +1514,16 @@ function chooseFreeReport(){
 function continueToPremium(){
   unlocked=true;
   renderProgress();
+  scheduleSave();
   showStep(6); // jump to Dimension 5 (Innovation) — premium path then continues through Sustainability and Readiness.
+}
+
+// Identity (institution + auditor) is the one thing we still require, but only
+// at submit. If it's incomplete we bounce back to Step 1 and flag the fields.
+function validateContextForSubmit(){
+  const ok=validateContext();
+  if(!ok) showStep(0);
+  return ok;
 }
 
 // ==========================================================
@@ -1447,10 +1551,9 @@ function maturityFor(total){
 // Submit & render results
 // ==========================================================
 async function submitAudit(){
-  // Premium path: the final premium dimension (Readiness & Adoption, DIMENSIONS[6])
-  // must be fully rated before submission. Earlier dimensions are validated as
-  // the user advances through next().
-  if(unlocked && !validateDimension(DIMENSIONS[6])) return;
+  // Free navigation means dimensions may be partially rated; that's allowed
+  // (unrated items score 0). We only insist on institution + auditor identity.
+  if(!validateContextForSubmit()) return;
 
   setOverlay('Saving your INDRIYA audit','Uploading your observations &amp; photo evidence &mdash; your report PDF is being built on our server.');
   document.getElementById('overlay').classList.add('active');
@@ -1467,6 +1570,11 @@ async function submitAudit(){
   }catch(e){
     console.log('[v0] Sheet submit error:',e && e.message);
   }
+
+  // The audit is in the consultant's hands now — drop the local draft so the
+  // next visit starts clean.
+  draftDisabled=true;
+  try{ await idbDel(); }catch(_){}
 
   showStep(9); // results step is now index 9 with the added Readiness dimension.
   document.getElementById('overlay').classList.remove('active');
@@ -1841,6 +1949,13 @@ function printReport(){
 // ==========================================================
 renderAuditSections();
 renderProgress();
+
+// Autosave whatever the auditor types into the Step-1 context fields, so an
+// abandoned-but-started audit (institution/auditor entered) is also recoverable.
+['iName','iType','students','programs','city','audName','audRole','audEmail','audPhone','audContext'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('input',()=>{ captureContextSoft(); scheduleSave(); });
+});
 </script>
 <!-- Sample-photo modal: opened by the "View Sample Photo" button under each question -->
 <div class="sample-modal" id="sampleModal" role="dialog" aria-modal="true" aria-labelledby="sampleModalTitle" onclick="if(event.target===this)closeSample()">
