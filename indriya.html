@@ -1594,7 +1594,10 @@ function buildDimensionsPayload(){
   // PDF renderer (Apps Script's HTML->PDF) can fetch them.
   function absSample(itemId){
     const s=SAMPLE_PHOTOS[itemId]; if(!s) return null;
-    try{ return {src:new URL(s.src,window.location.href).href, caption:s.caption}; }
+    // window.SAMPLE_IMG_BASE lets the bundled Android app point sample images
+    // at the public https host (so the server PDF can still fetch them); on the
+    // web it's undefined and we fall back to the current page origin.
+    try{ return {src:new URL(s.src, (window.SAMPLE_IMG_BASE||window.location.href)).href, caption:s.caption}; }
     catch(_){ return {src:s.src, caption:s.caption}; }
   }
   return visible.map(dim=>({

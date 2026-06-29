@@ -1,0 +1,12 @@
+# Gradle / Android build output
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+captures/
+.cxx/
+
+# Web assets are copied in from the repo root at build time (syncWebAssets task).
+# They are the single source of truth at ../index.html, ../indriya.html, ../assets
+app/src/main/assets/

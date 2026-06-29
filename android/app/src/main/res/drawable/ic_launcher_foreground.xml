@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Stylised flame (FIRE) in brand gold, sized within the adaptive safe zone. -->
+    <path
+        android:fillColor="#C9A84C"
+        android:pathData="M54,28 C61,41 73,46 70,60 C68,72 60,80 54,82 C48,80 40,72 38,60 C35,46 47,41 54,28 Z" />
+    <path
+        android:fillColor="#FBF6E8"
+        android:pathData="M54,47 C58,54 64,57 62,64 C61,70 57,74 54,75 C51,74 47,70 46,64 C44,57 50,54 54,47 Z" />
+</vector>
